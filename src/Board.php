@@ -9,12 +9,13 @@ class Board
     public array $cells;
     private array $groupSizes;
 
-    public function __construct(array $boardDescription)
+    public function __construct(array $boardDescription, array $boardPrefills)
     {
         $this->boardDescription = $boardDescription;
         $this->cellify();
         $this->groupify();
         $this->groupSizes = $this->getGroupSizes();
+        $this->prefill($boardPrefills);
     }
 
     public function getGroupSizes(): array
@@ -34,23 +35,40 @@ class Board
         return $this->cells[md5($row . $column)];
     }
 
+    /**
+     * @param int $row
+     * @param string $column
+     * @return array|int
+     *   0 if already definitively set.
+     */
     public function getCellPossibleValues(int $row, string $column)
     {
         $cellId = md5($row . $column);
         $cell = $this->cells[$cellId];
         if (!$this->cells[$cellId]->valueIsMutable) {
-            return 'Already definitively set';
+            return 0;
         }
 
-        $groupSize = $this->groupSizes[$cell->getGroup()];
         $cellGroup = $this->getCellGroup($cell->getGroup());
 
-        $ntbr = $cellGroup->getRemainingNumbersToBePlaced();
+        return $cellGroup->getRemainingNumbersToBePlaced();
+    }
 
-        $foo = 21;
-        // Region?
-        // Region size?
-        // Region values taken already?
+    public function attemptToSolve(int $row, string $column)
+    {
+        $possibleValues = $this->getCellPossibleValues($row, $column);
+        if (!$possibleValues) {
+            return new Result(null, 'no possibilities');
+        }
+        if (count($possibleValues) === 1) {
+            $cell = $this->getMutableCell($row, $column);
+            $cell->setValue(reset($possibleValues), false);
+
+            return new Result(reset($possibleValues), 'confident');
+        }
+        else {
+            throw new \Exception('Time to finish this method');
+        }
     }
 
     private function getCellGroup($groupId)
@@ -78,6 +96,22 @@ class Board
 
     private function groupify()
     {
+        return;
+    }
+
+    private function prefill($prefills)
+    {
+        $rowNumber = 1;
+        foreach ($prefills as $row) {
+            $cellNumber = 'a';
+            foreach ($row as $cell) {
+                if ($cell !== 0) {
+                    $this->getMutableCell($rowNumber, $cellNumber)->setValue($cell, false);
+                }
+                $cellNumber++;
+            }
+            $rowNumber++;
+        }
         return;
     }
 

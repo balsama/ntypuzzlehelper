@@ -11,7 +11,17 @@ class BoardTest extends \PHPUnit\Framework\TestCase
             [1, 2, 2],
             [3, 3, 3],
         ];
-        $this->board = new \Balsama\Nytpuzzlehelper\Board($boardDescription);
+        $boardPrefills = [
+            [2, 3, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+        ];
+        $boardSolution = [
+            [2, 3, 1],
+            [1, 2, 3],
+            [3, 1, 2],
+        ];
+        $this->board = new \Balsama\Nytpuzzlehelper\Board($boardDescription, $boardPrefills);
         parent::setUp();
     }
 
@@ -36,15 +46,13 @@ class BoardTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($value, $this->board->cells[md5(1 . 'a')]->value);
     }
 
-    public function testSolve()
+    public function testAttemptToSolve()
     {
-        $cell_1a = $this->board->getMutableCell(1, 'a');
-        $cell_2a = $this->board->getMutableCell(2, 'a');
-        $cell_1a->setValue(2, false);
-        $cell_2a->setValue(3, false);
 
-        $this->board->getCellPossibleValues(1, 'b');
+        $result = $this->board->attemptToSolve(1, 'b');
 
+        $this->assertEquals(2, $result->assigned);
+        $this->assertEquals('confident', $result->confidence);
         $foo = 21;
     }
 

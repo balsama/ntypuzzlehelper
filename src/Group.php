@@ -7,7 +7,7 @@ class Group
     public function __construct(public array $cells)
     {}
 
-    public function getGroupCount()
+    public function getGroupSize()
     {
         return count($this->cells);
     }
@@ -38,8 +38,17 @@ class Group
 
     public function getRemainingNumbersToBePlaced()
     {
-        $remainingNumberCount = $this->getSolvedCellsCount() - count($this->getSolvedCellsValues());
+        $solvedCellsValues = $this->getSolvedCellsValues();
+        $groupSize = $this->getGroupSize();
+        $remainingNumbersToBePlaced = [];
+        $i = 1;
+        while ($i <= $groupSize) {
+            if (!in_array($i, $solvedCellsValues)) {
+                $remainingNumbersToBePlaced[] = $i;
+            }
+            $i++;
+        }
         // Return the unaccounted for numbers remaining in the group
-        $foo = 21;
+        return $remainingNumbersToBePlaced;
     }
 }
