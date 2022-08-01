@@ -14,6 +14,9 @@ class Cell
         private int $group,
         public int|null $value = null,
         public bool $valueIsMutable = true,
+        public array $previousAttempts = [],
+        public array $possibleValues = [],
+        public array $prohibitedValues = [],
     ) {
         $this->cellId = md5($this->row . $this->column);
     }
@@ -22,7 +25,7 @@ class Cell
     {
         return $this->row;
     }
-    public function getColumn(): int
+    public function getColumn(): string
     {
         return $this->column;
     }
@@ -44,7 +47,7 @@ class Cell
             throw new \Exception("Value of cell $this->row $this->column is immutable.");
         }
     }
-    public function getValue(): int
+    public function getValue(): ?int
     {
         return $this->value;
     }
