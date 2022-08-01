@@ -36,6 +36,9 @@ class Cell
 
     public function setValue(int $value, $mutable = true): static
     {
+        if ($this->cellId == md5('4c')) {
+            $foo = 21;
+        }
         if ($this->valueIsMutable) {
             $this->value = $value;
             if ($mutable === false) {

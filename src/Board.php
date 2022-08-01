@@ -27,6 +27,7 @@ class Board
         $newlyAssigned = true;
         while ($newlyAssigned) {
             $newlyAssigned = $this->assignUnambiguousCells($confident);
+            $state = $this->getCurrentState();
             $this->fillAllCellsPossibleProhibitedValues();
         }
         if ($done = $this->checkIfDone()) {
@@ -47,8 +48,16 @@ class Board
     public function solve(array $state, bool $strict = false)
     {
         $this->doSolve();
+        $state = $this->getCurrentState();
+
+        if ($state = $this->checkIfDone()) {
+            return $state;
+        }
+
+        // @NOTE: The solver works flawlessly up until this point
 
         // 1. Assign ~a random~ the first unsolved cell a (possible) value
+        $state = $this->getCurrentState();
         $nth = 1;
         $cell = $this->findNthUnsolvedCell($nth);
         $possibleValues = array_diff($cell->possibleValues, $cell->prohibitedValues);
@@ -60,7 +69,7 @@ class Board
             $this->doSolve(false);
             $state = $this->getCurrentState();
             if ($state = $this->checkIfDone()) {
-                $foo = 21;
+                return $state;
             }
             $foo = 21;
         }
@@ -135,6 +144,11 @@ class Board
     {
         $newlyAssignedCount = 0;
         foreach ($this->cells as $cell) {
+            $this->fillAllCellsPossibleProhibitedValues();
+            $testId = md5('4b');
+            if ($cell->cellId == $testId) {
+                $foo = 21;
+            }
             /* @var Cell $cell */
             if (!$cell->valueIsMutable) {
                 continue;
@@ -156,8 +170,12 @@ class Board
     private function fillAllCellsPossibleProhibitedValues()
     {
         foreach ($this->cells as $cell) {
+            /* @var Cell $cell */
             $this->fillPossibleValues($cell);
             $this->fillProhibitedValues($cell);
+            if ($cell->cellId == md5('2d')) {
+                $fo = 21;
+            }
         }
     }
     private function fillPossibleValues(Cell $cell)
@@ -199,81 +217,59 @@ class Board
         return $cellGroup->getRemainingNumbersToBePlaced();
     }
 
-    public function getCellDisallowedValues($cell)
+    public function findDisallowedXValues(Cell $cell): array
     {
-        $disallowedValues = [];
-        $column = $cell->getColumn();
-        $row = $cell->getRow();
-
-        $cellColumn = $this->getCellColumn($column);
-        $cellRow = $this->getCellRow($row);
-
+        $state = $this->getCurrentState();
+        $disallowedXValues = [];
+        $columnLetter = $cell->getColumn();
+        $rowNumber = $cell->getRow();
+        $cellRow = $this->getCellRow($rowNumber);
         $xLength = chr(97 + (count($cellRow) - 1));
+
+        $distance = 0;
+        for ($tryColumn = 'a'; $tryColumn <= $xLength; $tryColumn++) {
+            if ($tryColumn == $columnLetter) {
+                $distance++;
+                continue;
+            }
+            $theCellValueToTest = $this->cells[md5($rowNumber.$tryColumn)]->getValue();
+            $distance = $this->getXDistance($columnLetter, $tryColumn);
+            if ($distance <= $theCellValueToTest) {
+                $disallowedXValues[] = $theCellValueToTest;
+            }
+        }
+
+        return array_unique($disallowedXValues);
+    }
+
+    public function findDisallowedYValues(Cell $cell): array
+    {
+        $disallowedYValues = [];
+        $columnLetter = $cell->getColumn();
+        $rowNumber = $cell->getRow();
+        $cellColumn = $this->getCellColumn($columnLetter);
         $yHeight = count($cellColumn);
 
-        // Y down
-        $distance = 0;
-        for ($tryRow = $row; $tryRow < $yHeight; $tryRow++) {
-            if ($tryRow == $row) {
-                $distance++;
+        for ($tryRow = 1; $tryRow < $yHeight; $tryRow++) {
+            if ($tryRow == $rowNumber) {
                 continue;
             }
-            $theCellValueToTest = $this->cells[md5($tryRow.$column)]->getValue();
+            $theCellValueToTest = $this->cells[md5($tryRow.$columnLetter)]->getValue();
+            $distance = abs($tryRow - $rowNumber);
             if ($distance <= $theCellValueToTest) {
-                $disallowedValues[] = $theCellValueToTest;
+                $disallowedYValues[] = $theCellValueToTest;
             }
-            $distance++;
         }
 
-        // Y up
-        $distance = 0;
-        for ($tryRow = $row; $tryRow > 0; $tryRow--) {
-            $foo = 21;
-            if ($tryRow == $row) {
-                $distance++;
-                continue;
-            }
-            $theCellValueToTest = $this->cells[md5($tryRow.$column)]->getValue();
-            if ($distance <= $theCellValueToTest) {
-                $disallowedValues[] = $theCellValueToTest;
-            }
-            $distance++;
-        }
+        return array_unique($disallowedYValues);
+    }
 
-        // X to the right
-        $distance = 0;
-        for ($tryColumn = $column; $tryColumn < $xLength; $tryColumn++) {
-            if ($tryColumn == $column) {
-                $distance++;
-                continue;
-            }
-            $theCellValueToTest = $this->cells[md5($row.$tryColumn)]->getValue();
-            if ($distance <= $theCellValueToTest) {
-                $disallowedValues[] = $theCellValueToTest;
-            }
-            $distance++;
-        }
+    public function getCellDisallowedValues(Cell $cell)
+    {
+        $disallowedXValues = $this->findDisallowedXValues($cell);
+        $disallowedYValues = $this->findDisallowedYValues($cell);
 
-        // X to the left
-        $tryColumn = $column;
-        $distance = 0;
-        while ($tryColumn >= 'a') {
-            if ($tryColumn == $column) {
-                $tryColumn = $this->decrementLetter($tryColumn);
-                $distance++;
-                continue;
-            }
-
-            $theCellValueToTest = $this->cells[md5($row.$tryColumn)]->getValue();
-            if ($distance <= $theCellValueToTest) {
-                $disallowedValues[] = $theCellValueToTest;
-            }
-
-            $tryColumn = $this->decrementLetter($tryColumn);
-            $distance++;
-        }
-
-        return $disallowedValues;
+        return array_merge($disallowedXValues, $disallowedYValues);
     }
 
     public function attemptToSolveCell(int $row, string $column, $strict = false)
@@ -399,6 +395,11 @@ class Board
             $rowNumber++;
         }
         return;
+    }
+
+    public function getXDistance(string $column1, string $column2): int
+    {
+        return abs( ord($column1) - ord($column2));
     }
 
 }
