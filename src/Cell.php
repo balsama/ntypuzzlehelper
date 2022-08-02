@@ -12,7 +12,7 @@ class Cell
         private int $row,
         private string $column,
         private int $group,
-        public int|null $value = null,
+        private int|null $value = null,
         public bool $valueIsMutable = true,
         public array $previousAttempts = [],
         public array $possibleValues = [],
@@ -36,9 +36,6 @@ class Cell
 
     public function setValue(int $value, $mutable = true): static
     {
-        if ($this->cellId == md5('4c')) {
-            $foo = 21;
-        }
         if ($this->valueIsMutable) {
             $this->value = $value;
             if ($mutable === false) {
@@ -50,6 +47,7 @@ class Cell
             throw new \Exception("Value of cell $this->row $this->column is immutable.");
         }
     }
+
     public function getValue(): ?int
     {
         return $this->value;

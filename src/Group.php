@@ -7,12 +7,12 @@ class Group
     public function __construct(public array $cells)
     {}
 
-    public function getGroupSize()
+    public function getGroupSize(): int
     {
         return count($this->cells);
     }
 
-    public function getSolvedCellsCount()
+    public function getSolvedCellsCount(): int
     {
         $cellsSolvedCount = 0;
         foreach ($this->cells as $cell)
@@ -24,19 +24,19 @@ class Group
         return $cellsSolvedCount;
     }
 
-    public function getSolvedCellsValues()
+    public function getSolvedCellsValues(): array
     {
         $solvedCellsValues = [];
         foreach ($this->cells as $cell)
         {
-            if ($cell->value) {
-                $solvedCellsValues[] = $cell->value;
+            if ($cell->getValue()) {
+                $solvedCellsValues[] = $cell->getValue();
             }
         }
         return $solvedCellsValues;
     }
 
-    public function getRemainingNumbersToBePlaced()
+    public function getRemainingNumbersToBePlaced(): array
     {
         $solvedCellsValues = $this->getSolvedCellsValues();
         $groupSize = $this->getGroupSize();
