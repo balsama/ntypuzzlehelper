@@ -164,7 +164,7 @@ class Board
      *   getDistance('a', 'b')
      *   // returns 1
      */
-    protected function getXDistance(string $column1, string $column2): int
+    public function getXDistance(string $column1, string $column2): int
     {
         return abs(ord($column1) - ord($column2));
     }

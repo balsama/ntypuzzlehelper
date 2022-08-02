@@ -26,10 +26,11 @@ class RippleEffectBoard extends Board
 
         $unsolved = $this->findAllUnsolvedCells();
         foreach ($unsolved as $unsolvedCell) {
+            /* @var Cell $unsolvedCell */
             $this->recalculateAllCellsValidValues();
-            $possibleValues = array_diff($unsolvedCell->possibleValues, $unsolvedCell->prohibitedValues);
+            $currentKnownAllowedValues = $unsolvedCell->getCurrentKnownAllowedValues();
 
-            foreach ($possibleValues as $possibleValue) {
+            foreach ($currentKnownAllowedValues as $possibleValue) {
                 $unsolvedCell->setValue($possibleValue, true);
                 $unsolvedCell->previousAttempts[] = $possibleValue;
                 $this->setDiscoverableValues(false);
@@ -167,7 +168,7 @@ class RippleEffectBoard extends Board
     /**
      * Gets the values not already assigned in a group.
      */
-    public function getCellPossibleValues(Cell $cell): array
+    public function findGroupUnassignedValues(Cell $cell): array
     {
         $cellGroup = $this->getCellGroup($cell->getGroup());
         return $cellGroup->getRemainingNumbersToBePlaced();
@@ -212,16 +213,16 @@ class RippleEffectBoard extends Board
     {
         foreach ($this->cells as $cell) {
             /* @var Cell $cell */
-            $this->fillPossibleValues($cell);
-            $this->fillProhibitedValues($cell);
+            $this->setCellPossibleValues($cell);
+            $this->setCellProhibitedValues($cell);
         }
     }
 
-    private function fillPossibleValues(Cell $cell)
+    private function setCellPossibleValues(Cell $cell)
     {
-        $cell->possibleValues = $this->getCellPossibleValues($cell);
+        $cell->possibleValues = $this->findGroupUnassignedValues($cell);
     }
-    private function fillProhibitedValues($cell)
+    private function setCellProhibitedValues($cell)
     {
         $cell->prohibitedValues = $this->getCellProhibitedValues($cell);
     }

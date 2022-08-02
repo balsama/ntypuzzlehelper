@@ -49,4 +49,12 @@ class Cell
     {
         return $this->value;
     }
+
+    public function getCurrentKnownAllowedValues(): array
+    {
+        if (($this->valueIsMutable === false) && (isset($this->value))) {
+            return [$this->value];
+        }
+        return array_diff($this->possibleValues, $this->prohibitedValues);
+    }
 }
