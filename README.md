@@ -56,3 +56,4 @@ Because I made a typo when creating the repo.
 
 ## Why?
 They were too hard to solve manually on my own and it was fun to try and formalize the logic.
+![Attempts were made...](images/ripple-effect--2022-07-10.jpg)
