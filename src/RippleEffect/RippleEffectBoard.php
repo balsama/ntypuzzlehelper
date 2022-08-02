@@ -226,15 +226,4 @@ class RippleEffectBoard extends Board
         $cell->prohibitedValues = $this->getCellProhibitedValues($cell);
     }
 
-    private function wipeUncertainValues(): int
-    {
-        $wipedCount = 0;
-        foreach ($this->cells as $cell) {
-            if ($cell->valueIsMutable) {
-                $cell->setValue(null);
-                $wipedCount++;
-            }
-        }
-        return $wipedCount;
-    }
 }

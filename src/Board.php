@@ -164,8 +164,24 @@ class Board
      *   getDistance('a', 'b')
      *   // returns 1
      */
-    public function getXDistance(string $column1, string $column2): int
+    protected function getXDistance(string $column1, string $column2): int
     {
         return abs(ord($column1) - ord($column2));
     }
+
+    /**
+     * Clears out the value of any cell that is mutable.
+     */
+    protected function wipeUncertainValues(): int
+    {
+        $wipedCount = 0;
+        foreach ($this->cells as $cell) {
+            if ($cell->valueIsMutable) {
+                $cell->setValue(null);
+                $wipedCount++;
+            }
+        }
+        return $wipedCount;
+    }
+
 }
