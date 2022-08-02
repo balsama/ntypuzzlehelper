@@ -1,6 +1,8 @@
 <?php
 include_once __DIR__ . '/../vendor/autoload.php';
 
+$date = '2022-07-31';
+
 $board = [
     [1, 1, 2, 3, 4, 5, 6],
     [7, 7, 8, 3, 4, 5, 5],
@@ -24,3 +26,4 @@ $board = new \Balsama\Nytpuzzlehelper\RippleEffect\RippleEffectBoard($board, $bo
 $board->solve();
 $prettySolution = $board->getPrettySolution();
 print $prettySolution;
+file_put_contents(__DIR__ . '/solutions/ripple-effect--' . $date . '.txt', $prettySolution);

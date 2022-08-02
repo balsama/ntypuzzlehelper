@@ -29,14 +29,16 @@ class Board
         return $renderer->getTable();
     }
 
-    protected function findFirstUnsolvedCell()
+    protected function findAllUnsolvedCells(): array
     {
+        $unsolved = [];
         foreach ($this->cells as $cell) {
             /* @var Cell $cell */
             if ($cell->valueIsMutable) {
-                return $cell;
+                $unsolved[] = $cell;
             }
         }
+        return $unsolved;
     }
 
     public function checkIfDone()

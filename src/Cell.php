@@ -34,7 +34,7 @@ class Cell
         return $this->group;
     }
 
-    public function setValue(int $value, $mutable = true): static
+    public function setValue(?int $value, $mutable = true): static
     {
         if ($this->valueIsMutable) {
             $this->value = $value;

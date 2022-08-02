@@ -24,20 +24,27 @@ class RippleEffectBoard extends \Balsama\Nytpuzzlehelper\Board
             return $state;
         }
 
-        $cell = $this->findFirstUnsolvedCell();
-        $possibleValues = array_diff($cell->possibleValues, $cell->prohibitedValues);
+        $unsolved = $this->findAllUnsolvedCells();
+        foreach ($unsolved as $unsolvedCell) {
+            $prevState = $this->getCurrentState();
+            $this->recalculateAllCellsValidValues();
+            $possibleValues = array_diff($unsolvedCell->possibleValues, $unsolvedCell->prohibitedValues);
 
-        foreach ($possibleValues as $possibleValue) {
-            $cell->setValue($possibleValue, true);
-            $cell->previousAttempts[] = $possibleValue;
-            $this->setDiscoverableValues(false);
-            if ($state = $this->checkIfDone()) {
-                return $state;
+            $state = $this->getCurrentState();
+            $foo = 21;
+            foreach ($possibleValues as $possibleValue) {
+                $unsolvedCell->setValue($possibleValue, true);
+                $unsolvedCell->previousAttempts[] = $possibleValue;
+                $this->setDiscoverableValues(false);
+                if ($state = $this->checkIfDone()) {
+                    return $state;
+                }
+                $this->wipeUncertainValues();
             }
         }
 
         $state = $this->getCurrentState();
-        throw new UnableToSolveException("Unable to solve board.", 0, null, $cell, $state);
+        throw new UnableToSolveException("Unable to solve board.", 0, null, $unsolvedCell, $state);
     }
 
     private function setDiscoverableValues($confident = true)
@@ -221,6 +228,18 @@ class RippleEffectBoard extends \Balsama\Nytpuzzlehelper\Board
     private function fillProhibitedValues($cell)
     {
         $cell->prohibitedValues = $this->getCellProhibitedValues($cell);
+    }
+
+    private function wipeUncertainValues(): int
+    {
+        $wipedCount = 0;
+        foreach ($this->cells as $cell) {
+            if ($cell->valueIsMutable) {
+                $cell->setValue(null);
+                $wipedCount++;
+            }
+        }
+        return $wipedCount;
     }
 
 }
