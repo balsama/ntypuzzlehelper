@@ -1,5 +1,7 @@
 <?php
 
+namespace Nytpuzzlehelper\RippleEffect;
+
 use Balsama\Nytpuzzlehelper\RippleEffect\RippleEffectBoard;
 use PHPUnit\Framework\TestCase;
 
@@ -129,7 +131,7 @@ class RippleEffectBoardTest extends TestCase
         $this->resetBoardLarge();
         $disallowedYValues = $this->board->findDisallowedYValues($this->board->cells[md5('2d')]);
         $this->assertCount(1, $disallowedYValues);
-        $this->assertEquals([5],$disallowedYValues);
+        $this->assertEquals([5], $disallowedYValues);
 
         $disallowedYValues = $this->board->findDisallowedYValues($this->board->cells[md5('3e')]);
         $this->assertCount(3, $disallowedYValues);
@@ -137,7 +139,7 @@ class RippleEffectBoardTest extends TestCase
 
         $disallowedYValues = $this->board->findDisallowedYValues($this->board->cells[md5('7e')]);
         $this->assertCount(2, $disallowedYValues);
-        $this->assertEquals([3, 5],$disallowedYValues);
+        $this->assertEquals([3, 5], $disallowedYValues);
     }
 
     public function testFindDisallowedXValues()
@@ -178,6 +180,4 @@ class RippleEffectBoardTest extends TestCase
     {
         $this->board = new RippleEffectBoard($this->boardDescriptionLarge, $this->boardPrefillsLarge);
     }
-
-
 }

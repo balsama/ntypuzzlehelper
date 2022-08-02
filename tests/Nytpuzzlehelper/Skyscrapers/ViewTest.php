@@ -1,13 +1,17 @@
 <?php
 
-use Balsama\Nytpuzzlehelper\Skyscrapers\View;
+namespace Nytpuzzlehelper\Skyscrapers;
 
-class ViewTest extends \PHPUnit\Framework\TestCase
-{
+use Balsama\Nytpuzzlehelper\Skyscrapers\View;
+use PHPUnit\Framework\TestCase;
+
+class ViewTest extends TestCase
+{   
     /**
      * Get results with no constraints or overrides
      */
-    public function testDefaultResults() {
+    public function testDefaultResults()
+    {
         $view = new View();
 
         // Asserts that the block length is three without setting it
@@ -31,7 +35,8 @@ class ViewTest extends \PHPUnit\Framework\TestCase
      * Add single and multiple constraints of each type and confirm that the
      * results are correct.
      */
-    public function testConstrainedResults() {
+    public function testConstrainedResults()
+    {
         $view = new View();
         $view->addConstraint(1, '==', 1);
 
@@ -62,13 +67,13 @@ class ViewTest extends \PHPUnit\Framework\TestCase
         foreach ($results as $result) {
             $this->assertTrue(($result[0] > 1) && ($result[2] < 3));
         }
-
     }
 
     /**
      * Constrain results to those with a certain number of skyscrapers visible.
      */
-    public function testDesiredVisibleResults() {
+    public function testDesiredVisibleResults()
+    {
         $view = new View();
         $view->setDesiredVisible(3);
         $results = $view->getSolutions();
@@ -78,7 +83,8 @@ class ViewTest extends \PHPUnit\Framework\TestCase
     /**
      * Combine desired visible and place constraints
      */
-    public function testConstraintsAndVisibleResults() {
+    public function testConstraintsAndVisibleResults()
+    {
         $view = new View();
 
         // Only two results should meet the criteria
@@ -93,7 +99,8 @@ class ViewTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(count($results) == 1);
     }
 
-    public function testBlockLength() {
+    public function testBlockLength()
+    {
         $view = new View();
         $view->setBlocks(4);
         $results = $view->getSolutions();

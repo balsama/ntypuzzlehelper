@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: adam.balsam
@@ -7,10 +8,11 @@
  */
 
 namespace Balsama\Nytpuzzlehelper\Skyscrapers;
+
 use NajiDev\Permutation;
 
-class View {
-
+class View
+{
     /**
      * @var array solutions
      *   The possible order of skyscrapers given defined constraints, number of
@@ -21,21 +23,24 @@ class View {
     /**
      * @param array $solutions
      */
-    private function setSolutions($solutions) {
+    private function setSolutions($solutions)
+    {
         $this->solutions = $solutions;
     }
 
     /**
      * @return array
      */
-    public function getSolutions() {
+    public function getSolutions()
+    {
         return $this->solutions;
     }
 
     /**
      * View constructor.
      */
-    public function __construct() {
+    public function __construct()
+    {
         $permutations = $this->getAllPermutations();
         $this->setSolutions($permutations);
     }
@@ -45,7 +50,8 @@ class View {
      *   The number that should be visible from a view, if known.
      */
     private $desiredVisible = null;
-    public function setDesiredVisible($desiredVisible) {
+    public function setDesiredVisible($desiredVisible)
+    {
         $this->desiredVisible = $desiredVisible;
         $this->applyVisibleFilter();
     }
@@ -53,7 +59,8 @@ class View {
     /**
      * @return null or int
      */
-    private function getDesiredVisible() {
+    private function getDesiredVisible()
+    {
         return $this->desiredVisible;
     }
 
@@ -61,7 +68,8 @@ class View {
      * Filters $solutions to only include results in which the $desiredVisible
      * number of skyscrapers are visible.
      */
-    private function applyVisibleFilter() {
+    private function applyVisibleFilter()
+    {
         $desiredVisible = $this->getDesiredVisible();
         $currentSolutions = $this->getSolutions();
 
@@ -77,7 +85,8 @@ class View {
     /**
      * Applies all currently defined $constraints.
      */
-    private function applyConstraints() {
+    private function applyConstraints()
+    {
         $currentSolutions = $this->getSolutions();
         $constraints = $this->getConstraints();
         if (empty($constraints)) {
@@ -97,10 +106,11 @@ class View {
      * @param $constraint
      *   A single constraint to be applied.
      */
-    private function applyConstraint($currentSolutions, $constraint) {
+    private function applyConstraint($currentSolutions, $constraint)
+    {
         $validConstrainedPermutations = [];
         foreach ($currentSolutions as $currentSolution) {
-            switch($constraint['operator']) {
+            switch ($constraint['operator']) {
                 case ">":
                     if ($currentSolution[$constraint['position']] > $constraint['value']) {
                         $validConstrainedPermutations[] = $currentSolution;
@@ -145,7 +155,8 @@ class View {
      *   The value for the operator to act on.
      * @throws \Exception
      */
-    public function addConstraint($position, $operator, $value) {
+    public function addConstraint($position, $operator, $value)
+    {
         if ($position > $this->getBlocks()) {
             throw new \Exception('Position must be less than total blocks.');
         }
@@ -168,14 +179,16 @@ class View {
     /**
      * Gets current defined constraints.
      */
-    private function getConstraints() {
+    private function getConstraints()
+    {
         return $this->constraints;
     }
 
     /**
      * Gets all the possible permutations of skyscrapers given the block length.
      */
-    private function getAllPermutations() {
+    private function getAllPermutations()
+    {
         $blocks = $this->getBlocks();
 
         // Convert the number of blocks into the height of buildings within it
@@ -206,7 +219,8 @@ class View {
      *   The number of blocks to the furthest skyscraper from the view.
      * @throws \Exception
      */
-    public function setBlocks($blocks) {
+    public function setBlocks($blocks)
+    {
         if ($blocks > 5) {
             throw new \Exception("We would need more power for that.");
         }
@@ -221,17 +235,19 @@ class View {
      * @return int
      *   The number of blocks to the furthest skyscraper from the view.
      */
-    public function getBlocks() {
+    public function getBlocks()
+    {
         return $this->blocks;
     }
 
     /**
      * Given an array of building heights, gets the number that are visible.
      */
-    public function getVisible($orderedScrapers) {
+    public function getVisible($orderedScrapers)
+    {
         $prevScraper = 0;
         $visibleCount = 0;
-        foreach($orderedScrapers as $scraper) {
+        foreach ($orderedScrapers as $scraper) {
             if ($scraper > $prevScraper) {
                 $visibleCount++;
                 $prevScraper = $scraper;
@@ -247,7 +263,8 @@ class View {
      *   The integer to array-ize
      * @return array
      */
-    private function integerToArray($int) {
+    private function integerToArray($int)
+    {
         $depth = [];
         $i = $int;
         while ($i > 0) {

@@ -1,9 +1,10 @@
 # Puzzle Helper
 This isn't for the crosswords. It's for the little puzzles in the upper right of the previous page. They change every
 quarter or so. This library will only help solve some of them.
+![Workflow](images/example.jpg)
 
 ## Supported Puzzles
-* Ripple Effect (Active from around June 2022)
+* Ripple Effect (Active July 2022)
 * SkyScrapers (Active around 2016 - partial support)
 
 ## Usage
@@ -56,4 +57,4 @@ Because I made a typo when creating the repo.
 
 ## Why?
 They were too hard to solve manually on my own and it was fun to try and formalize the logic.
-![Attempts were made...](images/ripple-effect--2022-07-10.jpg)
+![Attempts were made...](images/ripple-effect--2022-07-10--blank.jpg)

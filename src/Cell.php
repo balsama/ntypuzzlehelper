@@ -3,9 +3,7 @@
 namespace Balsama\Nytpuzzlehelper;
 
 class Cell
-
 {
-
     public string $cellId;
 
     public function __construct(
@@ -42,8 +40,7 @@ class Cell
                 $this->valueIsMutable = false;
             }
             return $this;
-        }
-        else {
+        } else {
             throw new \Exception("Value of cell $this->row $this->column is immutable.");
         }
     }
@@ -52,5 +49,4 @@ class Cell
     {
         return $this->value;
     }
-
 }

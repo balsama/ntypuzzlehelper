@@ -8,6 +8,6 @@ class Result
         public ?int $assigned,
         public string $confidence,
         public ?Cell $cell = null,
-    )
-    {}
+    ) {
+    }
 }

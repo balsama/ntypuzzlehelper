@@ -1,8 +1,11 @@
 <?php
 
-use Balsama\Nytpuzzlehelper\Board;
+namespace Nytpuzzlehelper;
 
-class BoardTest extends \PHPUnit\Framework\TestCase
+use Balsama\Nytpuzzlehelper\Board;
+use PHPUnit\Framework\TestCase;
+
+class BoardTest extends TestCase
 {
     private Board $board;
 
@@ -58,5 +61,4 @@ class BoardTest extends \PHPUnit\Framework\TestCase
     {
         $this->board = new Board($this->boardDescriptionSmall, $this->boardPrefillsSmall);
     }
-
 }

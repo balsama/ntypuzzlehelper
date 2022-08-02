@@ -10,7 +10,6 @@ use MathieuViossat\Util\ArrayToTextTable;
  */
 class Board
 {
-
     private array $boardDescription;
     public array $cells;
 
@@ -90,7 +89,7 @@ class Board
      */
     protected function getCellColumn(string $column): array
     {
-        return array_filter($this->cells, function($cell) use ($column) {
+        return array_filter($this->cells, function ($cell) use ($column) {
             $cellColumn = $cell->getColumn();
             if ($cellColumn === $column) {
                 return true;
@@ -107,7 +106,7 @@ class Board
      */
     public function getCellRow(int $row): array
     {
-        return array_filter($this->cells, function($cell) use ($row) {
+        return array_filter($this->cells, function ($cell) use ($row) {
             $cellrow = $cell->getRow();
             if ($cellrow === $row) {
                 return true;
@@ -169,5 +168,4 @@ class Board
     {
         return abs(ord($column1) - ord($column2));
     }
-
 }

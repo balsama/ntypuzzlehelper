@@ -2,21 +2,21 @@
 
 namespace Balsama\Nytpuzzlehelper\RippleEffect;
 
+use Balsama\Nytpuzzlehelper\Board;
 use Balsama\Nytpuzzlehelper\Cell;
 use Balsama\Nytpuzzlehelper\Exception\UnableToSolveException;
 
 /**
  * @rules
- *   Fill the cells of each heavily outlines area with the digits from 1 to n, where n is the number of cells in the
+ *   Fill the cells of each heavily outlined area with the digits from 1 to n, where n is the number of cells in the
  *   area. If two identical numbers appear in the same row of column, at least that many cells must separate them.
  * @startdate
  *   2022-June?
  * @endate
  *   ??
  */
-class RippleEffectBoard extends \Balsama\Nytpuzzlehelper\Board
+class RippleEffectBoard extends Board
 {
-
     public function solve()
     {
         $this->setDiscoverableValues();
@@ -26,12 +26,9 @@ class RippleEffectBoard extends \Balsama\Nytpuzzlehelper\Board
 
         $unsolved = $this->findAllUnsolvedCells();
         foreach ($unsolved as $unsolvedCell) {
-            $prevState = $this->getCurrentState();
             $this->recalculateAllCellsValidValues();
             $possibleValues = array_diff($unsolvedCell->possibleValues, $unsolvedCell->prohibitedValues);
 
-            $state = $this->getCurrentState();
-            $foo = 21;
             foreach ($possibleValues as $possibleValue) {
                 $unsolvedCell->setValue($possibleValue, true);
                 $unsolvedCell->previousAttempts[] = $possibleValue;
@@ -85,7 +82,7 @@ class RippleEffectBoard extends \Balsama\Nytpuzzlehelper\Board
             if ($tryColumn == $columnLetter) {
                 continue;
             }
-            $theCellValueToTest = $this->cells[md5($rowNumber.$tryColumn)]->getValue();
+            $theCellValueToTest = $this->cells[md5($rowNumber . $tryColumn)]->getValue();
             $distance = $this->getXDistance($columnLetter, $tryColumn);
             if ($distance <= $theCellValueToTest) {
                 $disallowedXValues[] = $theCellValueToTest;
@@ -110,7 +107,7 @@ class RippleEffectBoard extends \Balsama\Nytpuzzlehelper\Board
             if ($tryRow == $rowNumber) {
                 continue;
             }
-            $theCellValueToTest = $this->cells[md5($tryRow.$columnLetter)]->getValue();
+            $theCellValueToTest = $this->cells[md5($tryRow . $columnLetter)]->getValue();
             $distance = abs($tryRow - $rowNumber);
             if ($distance <= $theCellValueToTest) {
                 $disallowedYValues[] = $theCellValueToTest;
@@ -198,8 +195,7 @@ class RippleEffectBoard extends \Balsama\Nytpuzzlehelper\Board
             if (count($valueIntersect) === 1) {
                 if ($confident) {
                     $mutable = false;
-                }
-                else {
+                } else {
                     $mutable = true;
                 }
                 $cell->setValue(reset($valueIntersect), $mutable);
@@ -241,5 +237,4 @@ class RippleEffectBoard extends \Balsama\Nytpuzzlehelper\Board
         }
         return $wipedCount;
     }
-
 }

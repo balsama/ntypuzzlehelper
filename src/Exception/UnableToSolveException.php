@@ -8,15 +8,12 @@ use Throwable;
 class UnableToSolveException extends \Exception
 {
     public function __construct(
-        $message = "",
+        public $message = "Unable to solve puzzle.",
         $code = 0,
         Throwable $previous = null,
         public ?Cell $cell = null,
-        public ?array $state = null)
-    {
+        public ?array $state = null
+    ) {
         parent::__construct($message, $code, $previous);
     }
-
-    protected $message = 'Unable to solve puzzle.';
-
 }
