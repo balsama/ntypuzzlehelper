@@ -33,7 +33,7 @@ class RippleEffectBoard extends Board
             foreach ($currentKnownAllowedValues as $possibleValue) {
                 $unsolvedCell->setValue($possibleValue, true);
                 $unsolvedCell->previousAttempts[] = $possibleValue;
-                $this->setDiscoverableValues(false);
+                $this->setDiscoverableValues(false, [$unsolvedCell]);
                 if ($state = $this->checkIfDone()) {
                     return $state;
                 }
@@ -45,12 +45,12 @@ class RippleEffectBoard extends Board
         throw new UnableToSolveException("Unable to solve board.", 0, null, $unsolvedCell, $state);
     }
 
-    private function setDiscoverableValues($confident = true)
+    private function setDiscoverableValues($confident = true, $ignoreList = [])
     {
         $this->recalculateAllCellsValidValues();
         $newlyAssigned = true;
         while ($newlyAssigned) {
-            $newlyAssigned = $this->assignUnambiguousCells($confident);
+            $newlyAssigned = $this->assignUnambiguousCells($confident, $ignoreList);
             $this->recalculateAllCellsValidValues();
         }
         if ($done = $this->checkIfDone()) {
@@ -183,13 +183,16 @@ class RippleEffectBoard extends Board
      * @return int
      * @throws \Exception
      */
-    private function assignUnambiguousCells(bool $confident = true): int
+    private function assignUnambiguousCells(bool $confident = true, array $ignoreList = []): int
     {
         $newlyAssignedCount = 0;
         foreach ($this->cells as $cell) {
             /* @var Cell $cell */
             $this->recalculateAllCellsValidValues();
             if (!$cell->valueIsMutable) {
+                continue;
+            }
+            if (in_array($cell, $ignoreList)) {
                 continue;
             }
             $valueIntersect = array_diff($cell->possibleValues, $cell->prohibitedValues);
