@@ -15,10 +15,15 @@ foreach ($finder as $file) {
 
     $board = new RippleEffectBoard($puzzle['board'], $puzzle['prefills']);
     $time = -microtime(true);
+
+    $message = "\nSolved puzzle from ";
     try {
         $board->solve();
     } catch (UnableToSolveException $e) {
+        $time += microtime(true);
         echo "Unable to solve puzzle from " . $puzzle['date'] . " :(\n";
+        echo "(Duration: " . sprintf('%f', $time) . " seconds\n";
+        exit;
     }
     $time += microtime(true);
 
