@@ -104,7 +104,7 @@ class RippleEffectBoard extends Board
         $cellColumn = $this->getCellColumn($columnLetter);
         $yHeight = count($cellColumn);
 
-        for ($tryRow = 1; $tryRow < $yHeight; $tryRow++) {
+        for ($tryRow = 1; $tryRow <= $yHeight; $tryRow++) {
             if ($tryRow == $rowNumber) {
                 continue;
             }

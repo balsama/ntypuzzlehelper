@@ -140,6 +140,14 @@ class RippleEffectBoardTest extends TestCase
         $disallowedYValues = $this->board->findDisallowedYValues($this->board->cells[md5('7e')]);
         $this->assertCount(2, $disallowedYValues);
         $this->assertEquals([3, 5], $disallowedYValues);
+
+        $board = [[1, 1, 1], [1, 1, 1], [1, 1, 1]];
+        $prefills = [[2, 0, 0], [0, 0, 0], [0, 0, 0]];
+        $board = new RippleEffectBoard($board, $prefills);
+        $disallowedYValues = $board->findDisallowedYValues($board->cells[md5('1a')]);
+        $state = $board->getCurrentState();
+        $this->assertCount(1, $disallowedYValues);
+        $this->assertEquals([2], $disallowedYValues);
     }
 
     public function testFindDisallowedXValues()
