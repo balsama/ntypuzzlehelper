@@ -140,6 +140,18 @@ class RippleEffectBoardTest extends TestCase
         $disallowedYValues = $this->board->findDisallowedYValues($this->board->cells[md5('7e')]);
         $this->assertCount(2, $disallowedYValues);
         $this->assertEquals([3, 5], $disallowedYValues);
+
+        $board = [[1, 1, 1], [1, 1, 1], [1, 1, 1]];
+        $prefills = [[2, 0, 0], [0, 0, 0], [0, 0, 0]];
+        $board = new RippleEffectBoard($board, $prefills);
+
+        $disallowedYValues = $board->findDisallowedYValues($board->cells[md5('2a')]);
+        $this->assertCount(1, $disallowedYValues);
+        $this->assertEquals([2], $disallowedYValues);
+
+        $disallowedYValues = $board->findDisallowedYValues($board->cells[md5('3a')]);
+        $this->assertCount(1, $disallowedYValues);
+        $this->assertEquals([2], $disallowedYValues);
     }
 
     public function testFindDisallowedXValues()
@@ -159,6 +171,22 @@ class RippleEffectBoardTest extends TestCase
         $this->assertEquals([5], $disallowedXValues);
 
         $disallowedXValues = $this->board->findDisallowedXValues($this->board->cells[md5('4b')]);
+        $this->assertCount(0, $disallowedXValues);
+        $this->assertEquals([], $disallowedXValues);
+
+        $board = [[1, 1, 1], [1, 1, 1], [1, 1, 1]];
+        $prefills = [[0, 0, 0], [0, 0, 2], [0, 0, 0]];
+        $board = new RippleEffectBoard($board, $prefills);
+
+        $disallowedXValues = $board->findDisallowedXValues($this->board->cells[md5('2a')]);
+        $this->assertCount(1, $disallowedXValues);
+        $this->assertEquals([2], $disallowedXValues);
+
+        $board = [[1, 1, 1], [1, 1, 1], [1, 1, 1]];
+        $prefills = [[0, 0, 0], [0, 0, 1], [0, 0, 0]];
+        $board = new RippleEffectBoard($board, $prefills);
+
+        $disallowedXValues = $board->findDisallowedXValues($this->board->cells[md5('2a')]);
         $this->assertCount(0, $disallowedXValues);
         $this->assertEquals([], $disallowedXValues);
     }
