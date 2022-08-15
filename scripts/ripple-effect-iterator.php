@@ -1,5 +1,6 @@
 <?php
-include_once __DIR__ . '/../vendor/autoload.php';
+/* @var \Composer\Autoload\ClassLoader $loader */
+$loader = require __DIR__ . '/../vendor/autoload.php';
 
 use Balsama\Nytpuzzlehelper\Exception\UnableToSolveException;
 use Balsama\Nytpuzzlehelper\RippleEffect\RippleEffectBoard;

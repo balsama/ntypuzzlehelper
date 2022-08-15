@@ -200,6 +200,23 @@ class RippleEffectBoardTest extends TestCase
         $this->assertEquals([3, 2, 4], $disallowedX);
     }
 
+    public function testLittleInfo()
+    {
+        $board = [
+            [1, 1, 2],
+            [1, 2, 2],
+            [3, 3, 3],
+        ];
+        $prefills = [
+            [0, 0, 0],
+            [0, 1, 0],
+            [0, 0, 0]];
+        $board = new RippleEffectBoard($board, $prefills);
+        $result = $board->solve();
+        $state = $board->getCurrentState();
+        $foo = 21;
+    }
+
     private function resetBoardSmall()
     {
         $this->board = new RippleEffectBoard($this->boardDescriptionSmall, $this->boardPrefillsSmall);
