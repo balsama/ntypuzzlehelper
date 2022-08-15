@@ -23,7 +23,7 @@ foreach ($finder as $file) {
         $time += microtime(true);
         echo "Unable to solve puzzle from " . $puzzle['date'] . " :(\n";
         echo "(Duration: " . sprintf('%f', $time) . " seconds\n";
-        exit;
+        continue;
     }
     $time += microtime(true);
 
