@@ -1,4 +1,12 @@
 <?php
+/**
+ * @usage
+ *   Solve all puzzles in puzzles/ripple-effect:
+ *     $ php ./scripts/ripple-effect-iterator.php
+ *   Solve the puzzle from 14 August only by passing the `-d` argument with a date:
+ *     $ php ./scripts/ripple-effect-iterator.php -d 2022-08-14
+ */
+
 /* @var \Composer\Autoload\ClassLoader $loader */
 $loader = require __DIR__ . '/../vendor/autoload.php';
 
@@ -14,10 +22,17 @@ $finder->sortByName();
 foreach ($finder as $file) {
     $puzzle = Yaml::parseFile($file->getRealPath());
 
+    if (getopt('d:')) {
+        if (strtotime(getopt('d:')['d'])) {
+            if (strtotime($puzzle['date']) !== strtotime(getopt('d:')['d'])) {
+                continue;
+            }
+        }
+    }
+
     $board = new RippleEffectBoard($puzzle['board'], $puzzle['prefills']);
     $time = -microtime(true);
 
-    $message = "\nSolved puzzle from ";
     try {
         $board->solve();
     } catch (UnableToSolveException $e) {
