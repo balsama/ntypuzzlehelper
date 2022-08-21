@@ -201,24 +201,7 @@ class RippleEffectBoardTest extends TestCase
         $this->assertEquals([3, 2, 4], $disallowedX);
     }
 
-    public function testLittleInfo()
-    {
-        $board = [
-            [1, 1, 2],
-            [1, 2, 2],
-            [3, 3, 3],
-        ];
-        $prefills = [
-            [0, 0, 0],
-            [0, 1, 0],
-            [0, 0, 0]];
-        $board = new RippleEffectBoard($board, $prefills);
-        $result = $board->solve();
-        // @todo assert or solve or something
-        $this->assertTrue(true);
-    }
-
-    public function testAssignUnambiguousCells()
+    public function testCellHasUniquePossibleValueWithinGroup()
     {
         $definition = [
             [1, 1, 1],
@@ -246,17 +229,6 @@ class RippleEffectBoardTest extends TestCase
         $board = new RippleEffectBoard($definition, $prefills);
         $result = $board->cellHasUniquePossibleValueWithinGroup($board->getMutableCell(1, 'c'));
         $this->assertFalse($result);
-    }
-
-    public function testEightAugust()
-    {
-        $puzzle = Yaml::parseFile(__DIR__ . '/../../../puzzles/ripple-effect/2022-08-07.yml');
-        $board = new RippleEffectBoard($puzzle['board'], $puzzle['prefills']);
-
-        //$board->solve();
-
-        $this->assertTrue(true);
-        $foo = 21;
     }
 
     private function resetBoardSmall()
