@@ -51,14 +51,15 @@ class RippleEffectBoard extends Board
         $newlyAssigned = true;
         while ($newlyAssigned) {
             $newlyAssigned = $this->assignUnambiguousCells($confident, $ignoreList);
-            $this->recalculateAllCellsValidValues();
+            $ignoreList = array_merge($newlyAssigned, $ignoreList);
         }
         if ($done = $this->checkIfDone()) {
             return $done;
         }
         $newlyAssigned = true;
         while ($newlyAssigned) {
-            $newlyAssigned = $this->assignCellsWithUniquePossibilities($confident);
+            $newlyAssigned = $this->assignCellsWithUniquePossibilities($confident, $ignoreList);
+            $ignoreList = array_merge($newlyAssigned, $ignoreList);
             $this->recalculateAllCellsValidValues();
         }
         if ($done = $this->checkIfDone()) {
@@ -135,34 +136,56 @@ class RippleEffectBoard extends Board
      * Finds cells in a group that have unique possibilities. I.e., cells that _can_ have a value where no other cells
      *   report that that value is allowed withing that group.
      */
-    private function assignCellsWithUniquePossibilities(bool $confident = true): int
+    private function assignCellsWithUniquePossibilities(bool $confident = true, $ignoreList = []): array
     {
-        $newlyAssignedCount = 0;
+        $newlyAssignedCount = [];
         foreach ($this->cells as $cell) {
             /* @var Cell $cell */
             if (!$cell->valueIsMutable) {
                 continue;
             }
-
-            $thisCellsValidValues = array_diff($cell->possibleValues, $cell->prohibitedValues);
-
-            $group = $this->getCellGroup($cell->getGroup());
-            $newlyAssignedCount = 0;
-            $otherCellsValidValues = [];
-            foreach ($group->cells as $otherCell) {
-                /* @var Cell $otherCell */
-                if ($otherCell->cellId === $cell->cellId) {
-                    continue;
-                }
-                $otherCellsValidValues[] = array_diff($cell->possibleValues, $cell->prohibitedValues);
+            if (in_array($cell, $ignoreList)) {
+                continue;
             }
-            $whittledDownPossibilities = array_diff($thisCellsValidValues, ...$otherCellsValidValues);
-            if ($whittledDownPossibilities) {
-                $newlyAssignedCount++;
-                throw new \Exception('Time to write this.');
+
+            $uniquePossibleValueWithinGroup = $this->cellHasUniquePossibleValueWithinGroup($cell);
+
+            if ($uniquePossibleValueWithinGroup) {
+                $newlyAssignedCount[] = $cell;
+                $cell->setValue($uniquePossibleValueWithinGroup, $confident);
             }
         }
         return $newlyAssignedCount;
+    }
+
+    public function cellHasUniquePossibleValueWithinGroup(Cell $cell): bool|int
+    {
+        if (!$cell->valueIsMutable) {
+            return false;
+        }
+        $this->setCellPossibleValues($cell);
+        $this->setCellProhibitedValues($cell);
+
+        $thisCellsValidValues = array_diff($cell->possibleValues, $cell->prohibitedValues);
+
+        $group = $this->getCellGroup($cell->getGroup());
+        $otherCellsValidValues = [];
+
+        foreach ($group->cells as $otherCell) {
+            /* @var Cell $otherCell */
+            $this->setCellPossibleValues($otherCell);
+            $this->setCellProhibitedValues($otherCell);
+            if ($otherCell->cellId === $cell->cellId) {
+                continue;
+            }
+            $otherCellsValidValues[] = array_diff($otherCell->possibleValues, $otherCell->prohibitedValues);
+        }
+        $whittledDownPossibilities = array_diff($thisCellsValidValues, ...$otherCellsValidValues);
+
+        if (count($whittledDownPossibilities) === 1) {
+            return reset($whittledDownPossibilities);
+        }
+        return false;
     }
 
     /**
@@ -183,18 +206,20 @@ class RippleEffectBoard extends Board
      * @return int
      * @throws \Exception
      */
-    private function assignUnambiguousCells(bool $confident = true, array $ignoreList = []): int
+    private function assignUnambiguousCells(bool $confident = true, array $ignoreList = []): array
     {
-        $newlyAssignedCount = 0;
+        $newlyAssignedCount = [];
         foreach ($this->cells as $cell) {
             /* @var Cell $cell */
-            $this->recalculateAllCellsValidValues();
             if (!$cell->valueIsMutable) {
                 continue;
             }
             if (in_array($cell, $ignoreList)) {
                 continue;
             }
+
+            $this->setCellProhibitedValues($cell);
+            $this->setCellPossibleValues($cell);
             $valueIntersect = array_diff($cell->possibleValues, $cell->prohibitedValues);
             if (count($valueIntersect) === 1) {
                 if ($confident) {
@@ -203,7 +228,7 @@ class RippleEffectBoard extends Board
                     $mutable = true;
                 }
                 $cell->setValue(reset($valueIntersect), $mutable);
-                $newlyAssignedCount++;
+                $newlyAssignedCount[] = $cell;
             }
         }
         return $newlyAssignedCount;
@@ -229,5 +254,4 @@ class RippleEffectBoard extends Board
     {
         $cell->prohibitedValues = $this->getCellProhibitedValues($cell);
     }
-
 }

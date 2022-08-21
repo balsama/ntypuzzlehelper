@@ -4,6 +4,7 @@ namespace Nytpuzzlehelper\RippleEffect;
 
 use Balsama\Nytpuzzlehelper\RippleEffect\RippleEffectBoard;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Yaml\Yaml;
 
 class RippleEffectBoardTest extends TestCase
 {
@@ -213,7 +214,48 @@ class RippleEffectBoardTest extends TestCase
             [0, 0, 0]];
         $board = new RippleEffectBoard($board, $prefills);
         $result = $board->solve();
-        $state = $board->getCurrentState();
+        // @todo assert or solve or something
+        $this->assertTrue(true);
+    }
+
+    public function testAssignUnambiguousCells()
+    {
+        $definition = [
+            [1, 1, 1],
+            [2, 2, 2],
+        ];
+        $prefills = [
+            [0, 0, 0],
+            [3, 3, 0],
+        ];
+
+        $board = new RippleEffectBoard($definition, $prefills);
+        $result = $board->cellHasUniquePossibleValueWithinGroup($board->getMutableCell(1, 'c'));
+        $this->assertTrue($result === 3);
+
+        $definition = [
+            [1, 1, 1],
+            [2, 2, 2],
+            [3, 3, 3],
+        ];
+        $prefills = [
+            [0, 0, 0],
+            [2, 2, 0],
+            [3, 3, 0],
+        ];
+        $board = new RippleEffectBoard($definition, $prefills);
+        $result = $board->cellHasUniquePossibleValueWithinGroup($board->getMutableCell(1, 'c'));
+        $this->assertFalse($result);
+    }
+
+    public function testEightAugust()
+    {
+        $puzzle = Yaml::parseFile(__DIR__ . '/../../../puzzles/ripple-effect/2022-08-07.yml');
+        $board = new RippleEffectBoard($puzzle['board'], $puzzle['prefills']);
+
+        //$board->solve();
+
+        $this->assertTrue(true);
         $foo = 21;
     }
 
