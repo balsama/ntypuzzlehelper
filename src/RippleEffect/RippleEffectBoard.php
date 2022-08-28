@@ -20,8 +20,8 @@ class RippleEffectBoard extends Board
     public function solve()
     {
         $this->setDiscoverableValues();
-        if ($state = $this->checkIfDone()) {
-            return $state;
+        if ($this->checkIfDone()) {
+            return $this->getCurrentState();
         }
 
         $unsolved = $this->findAllUnsolvedCells();
@@ -31,6 +31,10 @@ class RippleEffectBoard extends Board
             $currentKnownAllowedValues = $unsolvedCell->getCurrentKnownAllowedValues();
 
             foreach ($currentKnownAllowedValues as $possibleValue) {
+                if (!$unsolvedCell->valueIsMutable) {
+                    // This could have been confidently solved since we made the list of unsolved cells.
+                    continue;
+                }
                 $unsolvedCell->setValue($possibleValue, true);
                 $unsolvedCell->previousAttempts[] = $possibleValue;
                 $this->setDiscoverableValues(false, [$unsolvedCell]);
