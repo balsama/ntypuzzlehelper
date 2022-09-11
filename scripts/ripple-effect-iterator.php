@@ -15,8 +15,13 @@ use Balsama\Nytpuzzlehelper\RippleEffect\RippleEffectBoard;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
+$puzzleDirectory = 'ripple-effect';
+if (getopt('p:')) {
+    $puzzleDirectory = getopt('p:');
+}
+
 $finder = new Finder();
-$finder->files()->in(__DIR__ . '/../puzzles/ripple-effect');
+$finder->files()->in(__DIR__ . '/../puzzles/' . $puzzleDirectory);
 $finder->sortByName();
 
 foreach ($finder as $file) {
