@@ -4,7 +4,7 @@ namespace Balsama\Nytpuzzlehelper;
 
 class Group
 {
-    public function __construct(public array $cells)
+    public function __construct(public array $cells, public int $id)
     {
     }
 
@@ -17,7 +17,7 @@ class Group
     {
         $cellsSolvedCount = 0;
         foreach ($this->cells as $cell) {
-            if ($cell->value) {
+            if ($cell->getValue()) {
                 $cellsSolvedCount++;
             }
         }

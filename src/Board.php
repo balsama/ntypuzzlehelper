@@ -71,7 +71,7 @@ class Board
         return $state;
     }
 
-    protected function getCellGroup($groupId): Group
+    public function getCellGroup($groupId): Group
     {
         $groupCells = [];
         foreach ($this->cells as $cell) {
@@ -79,7 +79,7 @@ class Board
                 $groupCells[$cell->cellId] = $cell;
             }
         }
-        return new Group($groupCells);
+        return new Group($groupCells, $groupId);
     }
 
     /**

@@ -2,6 +2,14 @@
 
 namespace Balsama\Nytpuzzlehelper;
 
+/**
+ * Rows are integers, columns are alpha.
+ *
+ *   a  b  c
+ * 1 1a 1b 1c
+ * 2 2a 2b 2c
+ * 3 3a 3b 3c
+ */
 class Cell
 {
     public string $cellId;
@@ -57,4 +65,11 @@ class Cell
         }
         return array_diff($this->possibleValues, $this->prohibitedValues);
     }
+
+    public function addProhibitedValue(int $value)
+    {
+        $this->prohibitedValues[] = $value;
+        $this->prohibitedValues = array_unique($this->prohibitedValues);
+    }
+
 }
