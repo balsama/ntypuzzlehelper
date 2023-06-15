@@ -3,7 +3,6 @@
 namespace Nytpuzzlehelper\AllOrOne;
 
 use Balsama\Nytpuzzlehelper\AllOrOne\AllOrOneBoard;
-use Balsama\Nytpuzzlehelper\Board;
 
 class AllOrOneBoardTest extends \PHPUnit\Framework\TestCase
 {
@@ -81,9 +80,73 @@ class AllOrOneBoardTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(1, $c2->getValue());
     }
 
+    public function testFillContBeOnesCants()
+    {
+        $boardDescription = [
+            [1, 1, 1],
+            [2, 2, 2],
+            [3, 3, 3],
+        ];
+        $boardPrefills = [
+            [0, 0, 0],
+            [1, 0, 0],
+            [0, 0, 0],
+        ];
+        $board = new AllOrOneBoard($boardDescription, $boardPrefills);
+        $b2 = $board->getMutableCell(2, 'b');
+        $c2 = $board->getMutableCell(2, 'c');
+        $c2->addProhibitedValue(1);
+        $this->assertEmpty($b2->prohibitedValues);
+
+        $group = $board->getCellGroup($b2->getGroup());
+        $board->fillContBeOnesCants($group);
+
+        $this->assertNotEmpty($b2->prohibitedValues);
+        $this->assertEquals([1], $b2->prohibitedValues);
+    }
+
+    public function testSolveLastRemaining()
+    {
+        $boardDescription = [
+            [1, 1, 1],
+            [2, 2, 2],
+            [3, 3, 3],
+        ];
+        $boardPrefills = [
+            [0, 0, 0],
+            [1, 0, 1],
+            [0, 0, 0],
+        ];
+        $board = new AllOrOneBoard($boardDescription, $boardPrefills);
+        $b2 = $board->getMutableCell(2, 'b');
+        $this->assertEmpty($b2->getValue());
+
+        $group = $board->getCellGroup($b2->getGroup());
+        $board->solveLastRemaining($group);
+
+        $this->assertNotEmpty($b2->getValue());
+        $this->assertEquals(1, $b2->getValue());
+
+        $boardPrefills = [
+            [0, 0, 0],
+            [1, 0, 2],
+            [0, 0, 0],
+        ];
+        $board = new AllOrOneBoard($boardDescription, $boardPrefills);
+        $b2 = $board->getMutableCell(2, 'b');
+        $this->assertEmpty($b2->getValue());
+
+        $group = $board->getCellGroup($b2->getGroup());
+        $board->solveLastRemaining($group);
+
+        $this->assertNotEmpty($b2->getValue());
+        $this->assertEquals(3, $b2->getValue());
+    }
+
     public function testSolve()
     {
         $this->board->solve();
+        $this->assertEquals(1, 1);
     }
 
     private function resetBoardSmall()

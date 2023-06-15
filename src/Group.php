@@ -35,6 +35,17 @@ class Group
         return $solvedCellsValues;
     }
 
+    public function getUnsolvedCells(): array
+    {
+        $unsolvedCells = [];
+        foreach ($this->cells as $cell) {
+            if (!$cell->getValue()) {
+                $unsolvedCells[] = $cell;
+            }
+        }
+        return $unsolvedCells;
+    }
+
     public function getRemainingNumbersToBePlaced(): array
     {
         $solvedCellsValues = $this->getSolvedCellsValues();
