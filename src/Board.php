@@ -71,7 +71,7 @@ class Board
         return $state;
     }
 
-    protected function getCellGroup($groupId): Group
+    public function getCellGroup($groupId): Group
     {
         $groupCells = [];
         foreach ($this->cells as $cell) {
@@ -131,6 +131,14 @@ class Board
         }
 
         return $this->cells;
+    }
+
+    private function groupify(): array
+    {
+        /* @var Cell $cell */
+        foreach ($this->cells as $cell) {
+
+        }
     }
 
     /**
