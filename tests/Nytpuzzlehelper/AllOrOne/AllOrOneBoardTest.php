@@ -3,8 +3,9 @@
 namespace Nytpuzzlehelper\AllOrOne;
 
 use Balsama\Nytpuzzlehelper\AllOrOne\AllOrOneBoard;
+use PHPUnit\Framework\TestCase;
 
-class AllOrOneBoardTest extends \PHPUnit\Framework\TestCase
+class AllOrOneBoardTest extends TestCase
 {
 
     private AllOrOneBoard $board;
@@ -266,8 +267,8 @@ class AllOrOneBoardTest extends \PHPUnit\Framework\TestCase
 
     public function testSolve()
     {
-        $this->board->solve();
-        $this->assertEquals(1, 1);
+        $solution = $this->board->solve();
+        $this->assertIsArray($solution);
     }
 
     private function resetBoardSmall()
