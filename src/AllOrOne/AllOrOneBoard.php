@@ -106,9 +106,6 @@ class AllOrOneBoard extends Board
 
         foreach ($unsolvedCells as $unsolvedCell) {
             /* @var Cell $unsolvedCell */
-            if (!$knownValue) {
-                $foo = 21;
-            }
             if (in_array($knownValue, $unsolvedCell->prohibitedValues)) {
                 $unsolvedCells[0]->addProhibitedValue($knownValue);
                 $unsolvedCells[1]->addProhibitedValue($knownValue);
@@ -325,10 +322,6 @@ class AllOrOneBoard extends Board
                 return null;
             }
             $column = $cell->getColumn();
-        }
-
-        if (!$this->cells[md5($row . $column)]) {
-            $foo = 21;
         }
 
         return $this->cells[md5($row . $column)];

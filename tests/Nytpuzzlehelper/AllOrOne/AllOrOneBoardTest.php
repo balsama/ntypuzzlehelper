@@ -234,7 +234,6 @@ class AllOrOneBoardTest extends \PHPUnit\Framework\TestCase
         $a3->setValue(1, false);
         $board->solveInsideCornerCell($b2);
         $this->assertNotNull($b2->getValue());
-        $foo = 21;
     }
 
     public function testGroupIsPowerfulNeighbor()
