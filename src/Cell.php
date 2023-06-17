@@ -53,6 +53,12 @@ class Cell
         }
     }
 
+    public function unsetValue(): static
+    {
+        $this->value = null;
+        return $this;
+    }
+
     public function getValue(): ?int
     {
         return $this->value;
