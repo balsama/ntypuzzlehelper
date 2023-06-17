@@ -23,6 +23,10 @@ class AllOrOneBoard extends Board
             $this->solveLastRemaining($group);
         }
         $this->solveCellsWithTwoCants();
+        foreach ($this->cells as $cell) {
+            /* @var Cell $cell */
+            $this->solveInsideCornerCell($cell);
+        }
 
         $unsolved = $this->findAllUnsolvedCells();
         if ($unsolved) {
@@ -149,6 +153,118 @@ class AllOrOneBoard extends Board
         }
     }
 
+    public function solveInsideCornerCell(Cell $cell)
+    {
+        if ($cell->getValue()) {
+            // Already solved.
+            return;
+        }
+        $insideCornersPowerfulNeighbors = $this->getInsideCornersPowerfulNeighbors($cell);
+        if (!$insideCornersPowerfulNeighbors) {
+            return;
+        }
+
+        $neighborsProbitedValues = [];
+        foreach ($insideCornersPowerfulNeighbors as $insideCornersPowerfulNeighbor) {
+            /* @var Cell $insideCornersPowerfulNeighbor */
+            $neighborsProbitedValues = array_merge(
+                $neighborsProbitedValues,
+                $insideCornersPowerfulNeighbor->prohibitedValues
+            );
+        }
+
+        if (count(array_unique($neighborsProbitedValues)) === 1) {
+            $cell->setValue(reset($neighborsProbitedValues));
+        }
+    }
+
+    public function getInsideCornersPowerfulNeighbors(Cell $cell): array
+    {
+        $tNeighbors = $this->getTNeighbors($cell);
+        foreach ($tNeighbors as $direction => $tNeighbor) {
+            /* @var Cell $tNeighbor */
+            $tNeighborGroups[$direction] = $tNeighbor->getGroup();
+        }
+        $counts = array_count_values($tNeighborGroups);
+        foreach ($counts as $group => $count) {
+            if ($count === 2) {
+                if ($group !== $cell->getGroup()) {
+                    $powerfulNeighborGroupId = $group;
+                }
+            }
+        }
+
+        if (!isset($powerfulNeighborGroupId)) {
+            return [];
+        }
+
+        if (!$this->groupIsPowerfulNeighbor($this->getCellGroup($powerfulNeighborGroupId))) {
+            return  [];
+        }
+
+        $powerfulNeighbors = array_filter($tNeighbors, function ($tn) use ($powerfulNeighborGroupId) {
+            if ($tn->getGroup() === $powerfulNeighborGroupId) {
+                return true;
+            }
+            return false;
+        });
+        return $powerfulNeighbors;
+    }
+
+    /**
+     * Validates:
+     *   1. Group has exactly one solved cell.
+     *   2. The solved cell is the corner.
+     *   3. At least one of the unsolved cells prohibits the solved cell's value.
+     *
+     * @param Group $group
+     * @return void
+     */
+    public function groupIsPowerfulNeighbor(Group $group): bool
+    {
+        if ($group->getSolvedCellsCount() !== 1) {
+            return false;
+        }
+
+        foreach ($group->cells as $groupCell) {
+            /* @var Cell $groupCell */
+            if ($this->cellIsCorner($groupCell)) {
+                if ($groupCell->getValue() === null) {
+                    return false;
+                }
+                $cornerValue = $groupCell->getValue();
+                break;
+            }
+        }
+
+        foreach ($group->cells as $groupCell) {
+            /* @var Cell $groupCell */
+            if (!$this->cellIsCorner($groupCell)) {
+                if (in_array($cornerValue, $groupCell->prohibitedValues)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public function cellIsCorner(Cell $cell): bool
+    {
+        $tNeighbors = $this->getTNeighbors($cell);
+        $tNeighborsInGroup = 0;
+        foreach ($tNeighbors as $tNeighbor) {
+            /* @var Cell $tNeighbor */
+            if ($tNeighbor->getGroup() === $cell->getGroup()) {
+                $tNeighborsInGroup++;
+            }
+        }
+
+        if ($tNeighborsInGroup === 2) {
+            return true;
+        }
+        return false;
+    }
+
     public function solveLastRemaining(Group $group)
     {
         if ($group->getSolvedCellsCount() !== 2) {
@@ -159,8 +275,7 @@ class AllOrOneBoard extends Board
             /* @var Cell $cell */
             if ($cell->getValue()) {
                 $solvedValues[] = $cell->getValue();
-            }
-            else {
+            } else {
                 $unsolvedCell = $cell;
             }
         }
@@ -168,8 +283,7 @@ class AllOrOneBoard extends Board
         if (count($filtered) === 1) {
             // Two have same value, so unsolved cell must have the same.
             $unsolvedCell->setValue(reset($filtered), false);
-        }
-        else {
+        } else {
             // Two of three possible values are used, so remaining cell must be remaining value.
             $unusedValue = array_diff([1, 2, 3], $solvedValues);
             $unsolvedCell->setValue(reset($unusedValue), false);
@@ -183,7 +297,7 @@ class AllOrOneBoard extends Board
         $tNeighbors['d'] = $this->getNeighbor($cell, 'y', 1);
         $tNeighbors['l'] = $this->getNeighbor($cell, 'x', -1);
         $tNeighbors['u'] = $this->getNeighbor($cell, 'y', -1);
-        return $tNeighbors;
+        return array_filter($tNeighbors);
     }
 
     private function getNeighbor(Cell $cell, $direction, int $distance): ?Cell

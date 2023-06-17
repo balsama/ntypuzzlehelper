@@ -143,6 +143,128 @@ class AllOrOneBoardTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(3, $b2->getValue());
     }
 
+    public function testGetInsideCornersPowerfulNeighbors()
+    {
+        $boardDescription = [
+            [1, 1, 1],
+            [2, 3, 3],
+            [2, 2, 3],
+        ];
+        $boardPrefills = [
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+        ];
+        $board = new AllOrOneBoard($boardDescription, $boardPrefills);
+        $b1 = $board->getMutableCell(1, 'b');
+        $b2 = $board->getMutableCell(2, 'b');
+        $b3 = $board->getMutableCell(3, 'b');
+        $a3 = $board->getMutableCell(3, 'a');
+
+        $powerfulNeighbors = $board->getInsideCornersPowerfulNeighbors($b1);
+        $this->assertCount(0, $powerfulNeighbors);
+
+        $powerfulNeighbors = $board->getInsideCornersPowerfulNeighbors($b2);
+        $this->assertCount(0, $powerfulNeighbors);
+
+        $powerfulNeighbors = $board->getInsideCornersPowerfulNeighbors($b3);
+        $this->assertCount(0, $powerfulNeighbors);
+
+        $a3->setValue(1);
+        $powerfulNeighbors = $board->getInsideCornersPowerfulNeighbors($b2);
+        $this->assertCount(0, $powerfulNeighbors);
+
+        $b3->addProhibitedValue(1);
+        $powerfulNeighbors = $board->getInsideCornersPowerfulNeighbors($b2);
+        $this->assertCount(2, $powerfulNeighbors);
+    }
+
+    public function testGetInsideCornersPowerfulNeighbors__oneOrMorNeighborsSolved()
+    {
+        $boardDescription = [
+            [1, 1, 1],
+            [2, 3, 3],
+            [2, 2, 3],
+        ];
+        $boardPrefills = [
+            [0, 0, 0],
+            [0, 0, 0],
+            [1, 0, 0],
+        ];
+        $board = new AllOrOneBoard($boardDescription, $boardPrefills);
+        $a2 = $board->getMutableCell(2, 'a');
+        $b2 = $board->getMutableCell(2, 'b');
+        $a3 = $board->cells[md5(3 . 'a')];
+
+        $powerfulNeighbors = $board->getInsideCornersPowerfulNeighbors($b2);
+        $this->assertEmpty($powerfulNeighbors);
+
+        $a2->setValue(1);
+        $a3->unsetValue();
+        $powerfulNeighbors = $board->getInsideCornersPowerfulNeighbors($b2);
+        $this->assertEmpty($powerfulNeighbors);
+    }
+
+    public function testSolveInsideCornerCell()
+    {
+        $boardDescription = [
+            [1, 1, 1],
+            [2, 3, 3],
+            [2, 2, 3],
+        ];
+        $boardPrefills = [
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+        ];
+        $board = new AllOrOneBoard($boardDescription, $boardPrefills);
+        $a2 = $board->getMutableCell(2, 'a');
+        $b2 = $board->getMutableCell(2, 'b');
+        $b3 = $board->getMutableCell(3, 'b');
+        $a3 = $board->getMutableCell(3, 'a');
+
+        $board->solveInsideCornerCell($b2);
+        $this->assertNull($b2->getValue());
+
+        $a2->addProhibitedValue(1);
+        $b3->addProhibitedValue(1);
+        $board->solveInsideCornerCell($b2);
+        $this->assertNull($b2->getValue());
+
+        $a3->setValue(1, false);
+        $board->solveInsideCornerCell($b2);
+        $this->assertNotNull($b2->getValue());
+        $foo = 21;
+    }
+
+    public function testGroupIsPowerfulNeighbor()
+    {
+        $boardDescription = [
+            [1, 1, 1],
+            [2, 3, 3],
+            [2, 2, 3],
+        ];
+        $boardPrefills = [
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+        ];
+        $board = new AllOrOneBoard($boardDescription, $boardPrefills);
+        $group = $board->getCellGroup(2);
+        $this->assertFalse($board->groupIsPowerfulNeighbor($group));
+
+        $a3 = $board->getMutableCell(3, 'a');
+        $a3->setValue(1, false);
+        $this->assertFalse($board->groupIsPowerfulNeighbor($group));
+
+        $a2 = $board->getMutableCell(2, 'a');
+        $a2->addProhibitedValue(1);
+        $this->assertTrue($board->groupIsPowerfulNeighbor($group));
+
+        $a2->prohibitedValues = [2];
+        $this->assertFalse($board->groupIsPowerfulNeighbor($group));
+    }
+
     public function testSolve()
     {
         $this->board->solve();
