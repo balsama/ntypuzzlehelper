@@ -16,7 +16,7 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Yaml;
 
 $finder = new Finder();
-$finder->files()->in(__DIR__ . '/../puzzles/all-or-one');
+$finder->files()->in(__DIR__ . '/../puzzles/all-or-one')->notName('*template*');
 $finder->sortByName();
 
 foreach ($finder as $file) {
