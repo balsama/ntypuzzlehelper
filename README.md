@@ -4,6 +4,7 @@ quarter or so. This library will only help solve some of them.
 ![Workflow](images/example.jpg)
 
 ## Supported Puzzles
+* All Or One (Active May 2023)
 * Ripple Effect (Active July 2022)
 * SkyScrapers (Active around 2016 - partial support)
 
