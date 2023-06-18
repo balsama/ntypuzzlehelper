@@ -8,66 +8,78 @@ use Balsama\Nytpuzzlehelper\Exception\UnableToSolveException;
 use http\Exception\InvalidArgumentException;
 use Balsama\Nytpuzzlehelper\Group;
 
+/**
+ * @rules
+ *   Place a digit from 1-3 in each cell so tat each outilned region contains either all teh same digit or all different
+ *   digits. If two cells are separated by a bold region boundary, they must contain different digits.
+ * @startdate
+ *   2023-May 28
+ * @endate
+ *   ??
+ */
 class AllOrOneBoard extends Board
 {
-    public function __construct(array $boardDescription, array $boardPrefills)
-    {
-        parent::__construct($boardDescription, $boardPrefills);
-    }
-
-    public function solve($unsolvedCountStart = null)
+    public function solve($unsolvedCountStart = null): array
     {
         $this->fillInCants();
-        foreach ($this->groups as $group) {
-            $this->solveCantBeOthers($group);
-            $this->solveLastRemaining($group);
-        }
-        $this->solveCellsWithTwoCants();
-        foreach ($this->cells as $cell) {
-            /* @var Cell $cell */
-            $this->solveInsideCornerCell($cell);
-        }
+        $this->solveCells();
 
         $unsolved = $this->findAllUnsolvedCells();
         if ($unsolved) {
-            $unsolvedCountEnd = count($unsolved);
-            if ($unsolvedCountStart === $unsolvedCountEnd) {
-                throw new UnableToSolveException();
+            if ($unsolvedCountStart === count($unsolved)) {
+                throw new UnableToSolveException(
+                    'Unable to solve puzzle.',
+                    0,
+                    null,
+                    null,
+                    $this->getCurrentState()
+                );
             }
-            return $this->solve($unsolvedCountEnd);
+            return $this->solve(count($unsolved));
         }
 
         return $this->getCurrentState();
     }
 
-    private function fillInCants()
+    private function fillInCants(): void
     {
         foreach ($this->cells as $cell) {
             $this->fillBullyNeighborCants($cell);
         }
         foreach ($this->groups as $group) {
-            /* @var Group $group */
             $this->fillContBeOnesCants($group);
         }
     }
 
-    private function solveCellsWithTwoCants()
+    private function solveCells(): void
     {
+        foreach ($this->groups as $group) {
+            $this->solveCantBeOthers($group);
+            $this->solveLastRemaining($group);
+        }
         foreach ($this->cells as $cell) {
-            /* @var Cell $cell */
-            if (count($cell->prohibitedValues) === 2) {
-                $value = array_diff([1, 2, 3], $cell->prohibitedValues);
-                if (count($value) !== 1) {
-                    throw new \Exception('There should only be one possible value at this point');
-                }
-                if (!$cell->valueIsMutable) {
-                    continue;
-                }
-                $cell->setValue(reset($value), false);
-            }
+            $this->solveCellWithTwoCants($cell);
+            $this->solveInsideCornerCell($cell);
         }
     }
 
+    private function solveCellWithTwoCants(Cell $cell): void
+    {
+        if (count($cell->prohibitedValues) === 2) {
+            $value = array_diff([1, 2, 3], $cell->prohibitedValues);
+            if (count($value) !== 1) {
+                throw new \Exception('There should only be one possible value at this point');
+            }
+            if (!$cell->valueIsMutable) {
+                return;
+            }
+            $cell->setValue(reset($value), false);
+        }
+    }
+
+    /**
+     * Adds prohibited values to cells with adjacent cells in different regions that are solved.
+     */
     public function fillBullyNeighborCants(Cell $cell)
     {
         $tNeighbors = array_filter($this->getTNeighbors($cell));
@@ -81,6 +93,11 @@ class AllOrOneBoard extends Board
         }
     }
 
+    /**
+     * For groups that 1) Have exactly one cell solved and 2) Have one unsolved cell that prohibits the value of the
+     * solved cell: we know that the cells must each contain a different digit. So we can prohibit the value fo the
+     * solved cell from the unsolved cells that don't already prohibit it.
+     */
     public function fillContBeOnesCants(Group $group)
     {
         if ($group->getSolvedCellsCount() !== 1) {
@@ -115,11 +132,7 @@ class AllOrOneBoard extends Board
 
     /**
      * Fills values of all cells in group if the group has exactly one known value and one of the remaining values is
-     * excluded from both remaining cells.
-     *
-     * @param Group $group
-     * @return void
-     * @throws \Exception
+     * excluded from both remaining cells since we know that all cells must have the same value.
      */
     public function solveCantBeOthers(Group $group)
     {
@@ -150,10 +163,14 @@ class AllOrOneBoard extends Board
         }
     }
 
+    /**
+     * Inside corners (that is, cells that have two adjacent cells from the same group) can have a known value even when
+     * neither of the adjacent cells are solved if: 1) The adjacent group's corner is solved 2) at least one of the
+     * other two cells prohibits the value of the solved corner.
+     */
     public function solveInsideCornerCell(Cell $cell)
     {
         if ($cell->getValue()) {
-            // Already solved.
             return;
         }
         $insideCornersPowerfulNeighbors = $this->getInsideCornersPowerfulNeighbors($cell);
@@ -161,20 +178,24 @@ class AllOrOneBoard extends Board
             return;
         }
 
-        $neighborsProbitedValues = [];
+        $neighborsProhibitedValues = [];
         foreach ($insideCornersPowerfulNeighbors as $insideCornersPowerfulNeighbor) {
             /* @var Cell $insideCornersPowerfulNeighbor */
-            $neighborsProbitedValues = array_merge(
-                $neighborsProbitedValues,
+            $neighborsProhibitedValues = array_merge(
+                $neighborsProhibitedValues,
                 $insideCornersPowerfulNeighbor->prohibitedValues
             );
         }
 
-        if (count(array_unique($neighborsProbitedValues)) === 1) {
-            $cell->setValue(reset($neighborsProbitedValues));
+        if (count(array_unique($neighborsProhibitedValues)) === 1) {
+            $cell->setValue(reset($neighborsProhibitedValues), false);
         }
     }
 
+    /**
+     * Gets two adjacent is they are from the same group and meet the criteria for being powerful. That is: 1) The group
+     * is L-shaped 2) The corner is solved 3) one of the unsolved cells prohibits the solved cell's value.
+     */
     public function getInsideCornersPowerfulNeighbors(Cell $cell): array
     {
         $tNeighbors = $this->getTNeighbors($cell);
@@ -214,8 +235,7 @@ class AllOrOneBoard extends Board
      *   2. The solved cell is the corner.
      *   3. At least one of the unsolved cells prohibits the solved cell's value.
      *
-     * @param Group $group
-     * @return void
+     * The non-corner cells of a Group like this are known as "powerful neighbors".
      */
     public function groupIsPowerfulNeighbor(Group $group): bool
     {
@@ -262,6 +282,9 @@ class AllOrOneBoard extends Board
         return false;
     }
 
+    /**
+     * Solves the last remaining unsolved cell of a group by process of elimination.
+     */
     public function solveLastRemaining(Group $group)
     {
         if ($group->getSolvedCellsCount() !== 2) {
@@ -297,10 +320,18 @@ class AllOrOneBoard extends Board
         return array_filter($tNeighbors);
     }
 
+    /**
+     * @param Cell $cell
+     * @param $direction
+     *   Must be one of 'x' or 'y'
+     * @param int $distance
+     *   Positive (right / down) or negative (left / up) integer.
+     * @return Cell|null
+     */
     private function getNeighbor(Cell $cell, $direction, int $distance): ?Cell
     {
         if (!in_array($direction, ['x', 'y'])) {
-            throw new InvalidArgumentException('Expected one of "x" or "y" for $direction.');
+            throw new \Exception('Expected one of "x" or "y" for $direction.');
         }
         if ($direction === 'x') {
             $lastColumn = $this->getBoardLastColumnAlpha();
@@ -319,6 +350,7 @@ class AllOrOneBoard extends Board
                 return null;
             }
             if ($row > sqrt(count($this->cells))) {
+                // @todo what if the board isn't square?
                 return null;
             }
             $column = $cell->getColumn();
