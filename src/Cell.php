@@ -39,6 +39,10 @@ class Cell
     {
         return $this->group;
     }
+    public function getId(): string
+    {
+        return $this->getColumn() . $this->getRow();
+    }
 
     public function setValue(?int $value, $mutable = true): static
     {
