@@ -88,7 +88,8 @@ class Board
         if (!$groupCells) {
             return null;
         }
-        return new Group($groupCells);
+
+        return new Group($groupCells, $groupId);
     }
 
     /**
@@ -188,6 +189,18 @@ class Board
         return abs(ord($column1) - ord($column2));
     }
 
+    public function getBoardLastColumnAlpha(): string
+    {
+        foreach ($this->cells as $cell) {
+            /* @var Cell $cell */
+            if ($cell->getRow() === 1) {
+                $columns[] = $cell->getColumn();
+            }
+        }
+        krsort($columns);
+        return reset($columns);
+    }
+
     /**
      * Clears out the value of any cell that is mutable.
      */
@@ -201,5 +214,15 @@ class Board
             }
         }
         return $wipedCount;
+    }
+
+
+    private function recordGroups(): void
+    {
+        $groupId = 1;
+        while ($cellGroup = $this->getCellGroup($groupId)) {
+            $this->groups[$groupId] = $cellGroup;
+            $groupId++;
+        }
     }
 }
