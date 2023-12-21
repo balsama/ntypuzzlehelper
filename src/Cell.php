@@ -2,6 +2,8 @@
 
 namespace Balsama\Nytpuzzlehelper;
 
+use MoveTrait;
+
 /**
  * Rows are integers, columns are alpha.
  *
@@ -13,6 +15,8 @@ namespace Balsama\Nytpuzzlehelper;
 class Cell
 {
     public string $cellId;
+    public Coordinate $coordinate;
+    public int $weight;
 
     public function __construct(
         private int $row,
@@ -25,6 +29,8 @@ class Cell
         public array $prohibitedValues = [],
     ) {
         $this->cellId = md5($this->row . $this->column);
+        $this->coordinate = new Coordinate($this->alpha2num($column), $row);
+        $this->weight = ($this->alpha2num($this->column) + $row);
     }
 
     public function getRow(): int
@@ -78,4 +84,23 @@ class Cell
         $this->prohibitedValues = array_unique($this->prohibitedValues);
     }
 
+    private function alpha2num($a)
+    {
+        $r = 0;
+        $l = strlen($a);
+        for ($i = 0; $i < $l; $i++) {
+            $r += pow(26, $i) * (ord($a[$l - $i - 1]) - 95);
+        }
+        return $r - 1;
+    }
+
+    public function getTNeighors(): array
+    {
+        $foo =
+        MoveTrait::getNeighbor(self(), )
+    }
+
+    public function getONeighbors(): array
+    {
+    }
 }
