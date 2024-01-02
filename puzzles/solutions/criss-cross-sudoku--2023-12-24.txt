@@ -1,0 +1,8 @@
+
+ b  l  r  e  d  u 
+ e  d  u  l  b  r 
+ d  u  e  b  r  l 
+ l  r  b  d  u  e 
+ u  e  d  r  l  b 
+ r  b  l  u  e  d 
+
