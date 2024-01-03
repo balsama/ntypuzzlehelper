@@ -30,6 +30,11 @@ class Board
         return $renderer->getTable();
     }
 
+    public function getBoardDescription(): array
+    {
+        return $this->boardDescription;
+    }
+
     protected function findAllUnsolvedCells(): array
     {
         $unsolved = [];
