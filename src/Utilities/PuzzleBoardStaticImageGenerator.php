@@ -12,13 +12,18 @@ class PuzzleBoardStaticImageGenerator
     private Board $board;
     private array $svgValues;
     private array $boardDescription;
+    private float $columnWidth;
+    private float $rowHeight;
+    private const IMAGE_HEIGHT = 800;
+    private const IMAGE_WIDTH = 800;
 
     public function __construct(Board $board)
     {
         $this->board = $board;
-        $array = $board->getBoardDescription();
         $this->boardDescription = $board->getBoardDescription();
-        $this->svgValues = $this->calculateSvgLinePaths($array);
+        $this->columnWidth = self::IMAGE_WIDTH / (count(reset($this->boardDescription)));
+        $this->rowHeight = self::IMAGE_HEIGHT / count($this->boardDescription);
+        $this->svgValues = $this->calculateSvgLinePaths($this->boardDescription);
     }
 
     public function getBoardDescription(): array
@@ -30,7 +35,14 @@ class PuzzleBoardStaticImageGenerator
         return $this->svgValues;
     }
 
-    public function getSvg()
+    public function saveRaster($filename = 'unnamed-puzzle-board.png', $filepath = __DIR__ . '/../../fixtures/'): void
+    {
+        $svg = $this->getSvg();
+        $gdImage = $svg->toRasterImage(800, 800);
+        imagepng($gdImage, $filepath . $filename);
+    }
+
+    public function getSvg(): SVG
     {
         $image = new SVG(800, 800);
         $doc = $image->getDocument();
@@ -39,40 +51,46 @@ class PuzzleBoardStaticImageGenerator
         $box->setStyle('stroke', 'black');
         $box->setStyle('stroke-width', 20);
         $doc->addChild($box);
-        foreach ($this->svgValues as $line) {
+        foreach ($this->svgValues['thick_lines'] as $line) {
             $line = new SVGLine($line['x1'], $line['y1'], $line['x2'], $line['y2']);
             $line->setStyle('stroke', 'black');
             $line->setStyle('stroke-width', 10);
+            $line->setStyle('stroke-linecap', 'square');//This doesn't appear to be supported.
+            $doc->addChild($line);
+        }
+        foreach ($this->svgValues['thin_lines'] as $line) {
+            $line = new SVGLine($line['x1'], $line['y1'], $line['x2'], $line['y2']);
+            $line->setStyle('stroke', 'black');
+            $line->setStyle('stroke-width', 1);
+            $line->setStyle('stroke-dasharray', '10,10');// This doesn'yt appear to be supported.
             $doc->addChild($line);
         }
 
-        $rasterImage = $image->toRasterImage(800, 800);
-
-        $imgJpg = imagejpeg($rasterImage, __DIR__ . '/../../fixtures/filename.jpg');
-        return;
-    }
-
-    public function save($svg, string $filename = 'filename.png', $path = __DIR__ . '/../../fixtures/')
-    {
-        file_put_contents($path . $filename, $svg);
+        return $image;
     }
 
     public function calculateSvgLinePaths(array $rows, $width = 800, $height = 800, $stroke_width = 6, $padding = 6)
     {
-        $row_height = $this->getLength(count($rows), $height, $stroke_width, $padding);
-        $column_width = $row_height;
-        $lines = [];
+        $thickLines = [];
+        $thinLines = [];
         foreach ($rows as $row => $cols) {
-            $vertical_offset = $row * $row_height;
+            $vertical_offset = $row * $this->rowHeight;
             $columnCount = count($cols);
             for ($index = 0; $index < $columnCount; $index++) {
                 $needsRightLine = $this->colNeedsRightLine($cols, $index);
                 if ($needsRightLine) {
-                    $lines[] = [
-                        'x1' => $column_width * ($index + 1),
+                    $thickLines[] = [
+                        'x1' => $this->columnWidth * ($index + 1),
                         'y1' => $vertical_offset,
-                        'x2' => $column_width * ($index + 1),
-                        'y2' => $vertical_offset + $row_height,
+                        'x2' => $this->columnWidth * ($index + 1),
+                        'y2' => $vertical_offset + $this->rowHeight,
+                    ];
+                } else {
+                    $thinLines[] = [
+                        'x1' => $this->columnWidth * ($index + 1),
+                        'y1' => $vertical_offset,
+                        'x2' => $this->columnWidth * ($index + 1),
+                        'y2' => $vertical_offset + $this->rowHeight,
                     ];
                 }
             }
@@ -85,22 +103,44 @@ class PuzzleBoardStaticImageGenerator
         }
 
         foreach ($columns as $colNum => $column) {
-            $horizontal_offset = $column_width * ($colNum);
+            $horizontal_offset = $this->getColumnX1($colNum + 1);
             for ($index = 0; $index < count($columns); $index++) {
-                $vertical_offset = ($row_height) * ($index + 1);
+                $vertical_offset = $this->getRowY1($index + 1);
                 $needsBottomLine = $this->rowNeedsBottomLine($column, $index);
                 if ($needsBottomLine) {
-                    $lines[] = [
+                    $thickLines[] = [
                         'x1' => $horizontal_offset - 5,
                         'y1' => $vertical_offset,
-                        'x2' => $horizontal_offset + ($column_width * ($index + 1)) + 5,
+                        'x2' => $horizontal_offset + $this->columnWidth + 4,
+                        'y2' => $vertical_offset,
+                    ];
+                } else {
+                    $thinLines[] = [
+                        'x1' => $horizontal_offset - 5,
+                        'y1' => $vertical_offset,
+                        'x2' => $horizontal_offset + $this->columnWidth + 4,
                         'y2' => $vertical_offset,
                     ];
                 }
             }
         }
 
-        return $lines;
+        return ['thick_lines' => $thickLines, 'thin_lines' => $thinLines];
+    }
+
+    public function getColumnX1($columnNumber)
+    {
+        if ($columnNumber < 1) {
+            throw new \Exception('$columnNumber should be indexed starting at 1.');
+        }
+        return ($this->columnWidth * ($columnNumber - 1));
+    }
+    public function getRowY1($rowNumber)
+    {
+        if ($rowNumber < 1) {
+            throw new \Exception('$rowNumber should be indexed starting at 1.');
+        }
+        return ($this->rowHeight * $rowNumber);
     }
 
     public function rowNeedsBottomLine(array $rows, int $index): bool
@@ -134,38 +174,9 @@ class PuzzleBoardStaticImageGenerator
     {
         $regions = [];
         foreach ($rows as $row => $columnRegions) {
-            $foo = 21;
             $regions = array_unique(array_merge($regions, $columnRegions));
         }
         return $regions;
-    }
-
-    protected function calculateSvgValues(array $rows, $width = 800, $height = 800, $stroke_width = 6, $padding = 6)
-    {
-        $region_rects = [];
-        $row_height = $this->getLength(count($rows), $height, $stroke_width, $padding);
-        foreach ($rows as $row => $cols) {
-              $column_width = $this->getLength(count($cols), $width, $stroke_width, $padding);
-              $vertical_offset = $this->getOffset($row, $row_height, $stroke_width, $padding);
-            foreach ($cols as $col => $region) {
-                  $horizontal_offset = $this->getOffset($col, $column_width, $stroke_width, $padding);
-                  // Check if this region is new, or already exists in the rectangle.
-                if (!isset($region_rects[$region])) {
-                      $region_rects[$region] = [
-                            'x' => $horizontal_offset,
-                            'y' => $vertical_offset,
-                            'width' => $column_width,
-                            'height' => $row_height,
-                          ];
-                } else {
-                        // In order to include the area of the previous region and any padding
-                        // or border, subtract the calculated offset from the original offset.
-                        //$region_rects[$region]['width'] = $column_width + ($horizontal_offset - $region_rects[$region]['x']);
-                        $region_rects[$region]['height'] = $row_height + ($vertical_offset - $region_rects[$region]['y']);
-                }
-            }
-        }
-        return $region_rects;
     }
 
     protected function getLength($number_of_regions, $length, $stroke_width, $padding)
