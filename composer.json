@@ -10,7 +10,8 @@
         "symfony/filesystem": "^6.1",
         "symfony/finder": "^6.1",
         "meyfa/php-svg": "^0.14.7",
-        "ext-gd": "*"
+        "ext-gd": "*",
+        "ext-imagick": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^10",

@@ -43,7 +43,6 @@ class PuzzleBoardStaticImageGeneratorTest extends \PHPUnit\Framework\TestCase
         $board = new AllOrOneBoard($boardDescription, $boardPrefills);
         $puzzleBoardStaticImageGenerator = new PuzzleBoardStaticImageGenerator($board);
         $rows = $puzzleBoardStaticImageGenerator->getBoardDescription();
-        $regions = $puzzleBoardStaticImageGenerator->enumerateRegions($rows);
         $this->assertTrue(true);
     }
 

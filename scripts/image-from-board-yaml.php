@@ -36,4 +36,9 @@ if (!$puzzle['prefills']) {
 }
 $board = new Board($puzzle['board'], $puzzle['prefills']);
 $puzzleBoardStaticImageGenerator = new PuzzleBoardStaticImageGenerator($board);
+
+// Save a single image.
 $puzzleBoardStaticImageGenerator->saveRaster($puzzle['puzzle_type'] . '--' . $puzzle['date'] . '.png');
+
+// Save a 2x3 grid of images.
+$puzzleBoardStaticImageGenerator->save2x3Grid($puzzle['puzzle_type'] . '--' . $puzzle['date'] . '--page.png');

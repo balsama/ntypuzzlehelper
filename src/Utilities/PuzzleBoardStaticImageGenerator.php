@@ -5,24 +5,28 @@ namespace Balsama\Nytpuzzlehelper\Utilities;
 use Balsama\Nytpuzzlehelper\Board;
 use SVG\Nodes\Shapes\SVGLine;
 use SVG\Nodes\Shapes\SVGRect;
+use SVG\Nodes\Texts\SVGText;
 use SVG\SVG;
 
 class PuzzleBoardStaticImageGenerator
 {
-    private Board $board;
     private array $svgValues;
     private array $boardDescription;
+    private array $boardPrefills;
     private float $columnWidth;
     private float $rowHeight;
+
     private const IMAGE_HEIGHT = 800;
     private const IMAGE_WIDTH = 800;
+    private float $fontSize;
 
     public function __construct(Board $board)
     {
-        $this->board = $board;
         $this->boardDescription = $board->getBoardDescription();
+        $this->boardPrefills = $board->getBoardPrefills();
         $this->columnWidth = self::IMAGE_WIDTH / (count(reset($this->boardDescription)));
         $this->rowHeight = self::IMAGE_HEIGHT / count($this->boardDescription);
+        $this->fontSize = $this->rowHeight * 0.4;
         $this->svgValues = $this->calculateSvgLinePaths($this->boardDescription);
     }
 
@@ -35,15 +39,36 @@ class PuzzleBoardStaticImageGenerator
         return $this->svgValues;
     }
 
-    public function saveRaster($filename = 'unnamed-puzzle-board.png', $filepath = __DIR__ . '/../../fixtures/'): void
+    public function saveRaster($filename = 'unnamed-puzzle-board.png', $filepath = __DIR__ . '/../../images/generated/'): void
     {
         $svg = $this->getSvg();
-        $gdImage = $svg->toRasterImage(800, 800);
+        @$gdImage = $svg->toRasterImage(800, 800);
         imagepng($gdImage, $filepath . $filename);
     }
 
+    public function save2x3Grid($filename = 'unnamed-puzzle-board--page.png', $filepath = __DIR__ . '/../../images/generated/'): void
+    {
+        $canvas = imagecreatetruecolor(1800, 2800);
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        imagefilledrectangle($canvas, 0, 0, 1800, 2800, $white);
+
+        $puzzleSvg = $this->getSvg();
+        @$puzzleGdImage = $puzzleSvg->toRasterImage(800, 800);
+
+        $dst_y = 0;
+        $incr = 1000;
+        for ($i = 1; $i < 4; $i++) {
+            imagecopy($canvas, $puzzleGdImage, 0, $dst_y, 0, 0, 800, 800);
+            imagecopy($canvas, $puzzleGdImage, $incr, $dst_y, 0, 0, 800, 800);
+            $dst_y = $dst_y + $incr;
+        }
+        imagepng($canvas, $filepath . $filename);
+    }
+
+
     public function getSvg(): SVG
     {
+        SVG::addFont(__DIR__ . '/../../fonts/font.ttf');
         $image = new SVG(800, 800);
         $doc = $image->getDocument();
         $box = new SVGRect(0, 0, 800, 800);
@@ -62,8 +87,16 @@ class PuzzleBoardStaticImageGenerator
             $line = new SVGLine($line['x1'], $line['y1'], $line['x2'], $line['y2']);
             $line->setStyle('stroke', 'black');
             $line->setStyle('stroke-width', 1);
-            $line->setStyle('stroke-dasharray', '10,10');// This doesn'yt appear to be supported.
+            $line->setStyle('stroke-dasharray', '10,10');// This doesn't appear to be supported.
             $doc->addChild($line);
+        }
+        foreach ($this->svgValues['prefills'] as $prefill) {
+            $char = new SVGText($prefill['value'], $prefill['x'], $prefill['y']);
+            $char->setStyle('stroke', 'black');
+            $char->setStyle('stroke-width', 0);
+            $char->setStyle('fill', 'black');
+            $char->setStyle('font-size', $this->fontSize . 'px');
+            $doc->addChild($char);
         }
 
         return $image;
@@ -93,9 +126,18 @@ class PuzzleBoardStaticImageGenerator
                         'y2' => $vertical_offset + $this->rowHeight,
                     ];
                 }
+                if ($this->cellHasPrefill($row, $index)) {
+                    $prefill = $this->cellHasPrefill($row, $index);
+                    $prefills[] = [
+                        'value' => $prefill,
+                        'x' => ($this->columnWidth * ($index)) + ($this->columnWidth * 0.3),
+                        'y' => ($vertical_offset + $this->rowHeight) - ($this->rowHeight * 0.3),
+                    ];
+                }
             }
         }
 
+        $columns = [];
         foreach ($rows as $cols) {
             for ($index = 0; $index < count($rows); $index++) {
                 $columns[$index][] = $cols[$index];
@@ -125,7 +167,16 @@ class PuzzleBoardStaticImageGenerator
             }
         }
 
-        return ['thick_lines' => $thickLines, 'thin_lines' => $thinLines];
+        return ['thick_lines' => $thickLines, 'thin_lines' => $thinLines, 'prefills' => $prefills];
+    }
+
+    public function cellHasPrefill($row, $column): null|int|string
+    {
+        if (!$this->boardPrefills) {
+            return null;
+        }
+        $prefill = $this->boardPrefills[$row][$column];
+        return $prefill;
     }
 
     public function getColumnX1($columnNumber)
@@ -135,6 +186,7 @@ class PuzzleBoardStaticImageGenerator
         }
         return ($this->columnWidth * ($columnNumber - 1));
     }
+
     public function getRowY1($rowNumber)
     {
         if ($rowNumber < 1) {
@@ -167,39 +219,5 @@ class PuzzleBoardStaticImageGenerator
             return true;
         }
         return false;
-    }
-
-
-    public function enumerateRegions($rows): array
-    {
-        $regions = [];
-        foreach ($rows as $row => $columnRegions) {
-            $regions = array_unique(array_merge($regions, $columnRegions));
-        }
-        return $regions;
-    }
-
-    protected function getLength($number_of_regions, $length, $stroke_width, $padding)
-    {
-        if ($number_of_regions === 0) {
-              return 0;
-        }
-
-        // Half of the stroke width is drawn outside the dimensions.
-        $total_stroke = $number_of_regions * $stroke_width;
-        // Padding does not precede the first region.
-        $total_padding = ($number_of_regions - 1) * $padding;
-        // Divide the remaining length by the number of regions.
-        return ($length - $total_padding - $total_stroke) / $number_of_regions;
-    }
-
-    protected function getOffset($delta, $length, $stroke_width, $padding)
-    {
-        // Half of the stroke width is drawn outside the dimensions.
-        $stroke_width /= 2;
-        // For every region in front of this add two strokes, as well as one
-        // directly in front.
-        $num_of_strokes = 2 * $delta + 1;
-        return ($num_of_strokes * $stroke_width) + ($delta * ($length));
     }
 }
