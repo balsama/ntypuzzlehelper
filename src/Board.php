@@ -11,12 +11,14 @@ use MathieuViossat\Util\ArrayToTextTable;
 class Board
 {
     private array $boardDescription;
+    private array $boardPrefills;
     public array $cells;
     public array $groups;
 
     public function __construct(array $boardDescription, array $boardPrefills)
     {
         $this->boardDescription = $boardDescription;
+        $this->boardPrefills = $boardPrefills;
         $this->cellify();
         $this->recordGroups();
         $this->prefill($boardPrefills);
@@ -28,6 +30,16 @@ class Board
         $renderer = new ArrayToTextTable($state);
         $renderer->setDecorator(new Blank());
         return $renderer->getTable();
+    }
+
+    public function getBoardDescription(): array
+    {
+        return $this->boardDescription;
+    }
+
+    public function getBoardPrefills(): array
+    {
+        return $this->boardPrefills;
     }
 
     protected function findAllUnsolvedCells(): array
