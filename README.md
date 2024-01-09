@@ -8,6 +8,7 @@ quarter or so. This library will only help solve some of them.
 * All Or One (Active May 2023)
 * Ripple Effect (Active July 2022)
 * SkyScrapers (Active around 2016 - partial support)
+* Two Not touch (Active in daily paper 2023/24 -- Board static image generation only)
 
 ## Usage
 1. Clone this repo and install dependencies
@@ -38,21 +39,59 @@ quarter or so. This library will only help solve some of them.
         [0, 0, 0, 0, 5, 0, 0],
     ];
    ```
-4. Instantiate the board
+4. Define any shaded regions (in, for example Light and Shadow Boards).
+   ```injectablephp
+    $boardShadows = [
+        [0, 0, 1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 3, 0],
+        [0, 0, 1, 0, 1, 0, 0],
+        [0, 1, 0, 0, 0, 1, 0],
+        [1, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+    ];
+   ```
+
+5. Instantiate the board
    ```injectablephp
    $board = new \Balsama\Nytpuzzlehelper\RippleEffect\RippleEffectBoard(
        $board,
        $boardPrefills,
+       $boardShadows,
+       [
+           'puzzle_type' => 'Ripple Effect',
+           'date' => '2024-01-07'
+       ]
    );
    ```
-5. Solve
+6. Solve
    ```injectablephp
    $board->solve();
    ```
-6. Get results
+7. Get results
     ```injectablephp
    $board->getPrettySolution();
     ```
+## Creating static images of Boards
+The PuzzleBoardStaticImageGenerator class can generate a static PNG from any Board class.
+
+```injectablephp
+$board = new \Balsama\Nytpuzzlehelper\Board(
+    $board,
+    $boardPrefills,
+    $boardShadows,
+    [
+        'puzzle_type' => 'Ripple Effect',
+        'date' => '2024-01-07'
+    ]
+);
+$puzzleBoardStaticImageGenerator = new PuzzleBoardStaticImageGenerator($board);
+
+// Save a single image.
+$puzzleBoardStaticImageGenerator->saveRaster($puzzle['puzzle_type'] . '--' . $puzzle['date'] . '.png');
+// Save a 2x3 grid of images.
+$puzzleBoardStaticImageGenerator->save2x3Grid($puzzle['puzzle_type'] . '--' . $puzzle['date'] . '--page.png');
+```
 
 ## Why N*T*Y Puzzle Helper? (Instead of NYT)
 Because I made a typo when creating the repo.

@@ -11,8 +11,10 @@ use SVG\SVG;
 class PuzzleBoardStaticImageGenerator
 {
     private array $svgValues;
+    private Board $board;
     private array $boardDescription;
     private array $boardPrefills;
+    private array $boardShaded;
     private float $columnWidth;
     private float $rowHeight;
 
@@ -22,8 +24,10 @@ class PuzzleBoardStaticImageGenerator
 
     public function __construct(Board $board)
     {
+        $this->board = $board;
         $this->boardDescription = $board->getBoardDescription();
         $this->boardPrefills = $board->getBoardPrefills();
+        $this->boardShaded = $board->getBoardShaded();
         $this->columnWidth = self::IMAGE_WIDTH / (count(reset($this->boardDescription)));
         $this->rowHeight = self::IMAGE_HEIGHT / count($this->boardDescription);
         $this->fontSize = $this->rowHeight * 0.4;
@@ -48,18 +52,40 @@ class PuzzleBoardStaticImageGenerator
 
     public function save2x3Grid($filename = 'unnamed-puzzle-board--page.png', $filepath = __DIR__ . '/../../images/generated/'): void
     {
-        $canvas = imagecreatetruecolor(1800, 2800);
+        $canvas = imagecreatetruecolor(1800, 2740);
         $white = imagecolorallocate($canvas, 255, 255, 255);
-        imagefilledrectangle($canvas, 0, 0, 1800, 2800, $white);
+        imagefilledrectangle($canvas, 0, 0, 1800, 2740, $white);
+
+        $headerText = $this->board->meta['puzzle_type'];
+        $subHeaderText = $this->board->meta['date'];
+        $header = new SVG(1800, 100);
+        $doc = $header->getDocument();
+
+        $title = new SVGText($headerText, 0, 40,);
+        $title->setStyle('stroke', 'black');
+        $title->setStyle('stroke-width', 1);
+        $title->setStyle('fill', 'black');
+        $title->setStyle('font-size', '32px');
+        $doc->addChild($title);
+
+        $subhead = new SVGText($subHeaderText, 0, 76,);
+        $subhead->setStyle('stroke', 'black');
+        $subhead->setStyle('stroke-width', 0);
+        $subhead->setStyle('fill', 'black');
+        $subhead->setStyle('font-size', '24px');
+        $doc->addChild($subhead);
+
+        @$headerGdImage = $header->toRasterImage(1800, 100);
+        imagecopy($canvas, $headerGdImage, 0, 0, 0, 0, 1800, 100);
 
         $puzzleSvg = $this->getSvg();
         @$puzzleGdImage = $puzzleSvg->toRasterImage(800, 800);
 
-        $dst_y = 0;
-        $incr = 1000;
+        $dst_y = 100;
+        $incr = 920;
         for ($i = 1; $i < 4; $i++) {
             imagecopy($canvas, $puzzleGdImage, 0, $dst_y, 0, 0, 800, 800);
-            imagecopy($canvas, $puzzleGdImage, $incr, $dst_y, 0, 0, 800, 800);
+            imagecopy($canvas, $puzzleGdImage, 1000, $dst_y, 0, 0, 800, 800);
             $dst_y = $dst_y + $incr;
         }
         imagepng($canvas, $filepath . $filename);
@@ -76,6 +102,11 @@ class PuzzleBoardStaticImageGenerator
         $box->setStyle('stroke', 'black');
         $box->setStyle('stroke-width', 20);
         $doc->addChild($box);
+        foreach ($this->svgValues['shaded'] as $shaded) {
+            $rect = new SVGRect($shaded['x'], $shaded['y'], $shaded['width'], $shaded['height']);
+            $rect->setStyle('fill', 'gray');
+            $doc->addChild($rect);
+        }
         foreach ($this->svgValues['thick_lines'] as $line) {
             $line = new SVGLine($line['x1'], $line['y1'], $line['x2'], $line['y2']);
             $line->setStyle('stroke', 'black');
@@ -98,6 +129,11 @@ class PuzzleBoardStaticImageGenerator
             $char->setStyle('font-size', $this->fontSize . 'px');
             $doc->addChild($char);
         }
+        $box = new SVGRect(0, 0, 800, 800);
+        $box->setStyle('fill', 'transparent');
+        $box->setStyle('stroke', 'black');
+        $box->setStyle('stroke-width', 20);
+        $doc->addChild($box);
 
         return $image;
     }
@@ -106,6 +142,8 @@ class PuzzleBoardStaticImageGenerator
     {
         $thickLines = [];
         $thinLines = [];
+        $shaded = [];
+        $prefills = [];
         foreach ($rows as $row => $cols) {
             $vertical_offset = $row * $this->rowHeight;
             $columnCount = count($cols);
@@ -132,6 +170,14 @@ class PuzzleBoardStaticImageGenerator
                         'value' => $prefill,
                         'x' => ($this->columnWidth * ($index)) + ($this->columnWidth * 0.3),
                         'y' => ($vertical_offset + $this->rowHeight) - ($this->rowHeight * 0.3),
+                    ];
+                }
+                if ($this->cellIsShaded($row, $index)) {
+                    $shaded[] = [
+                        'x' => $this->columnWidth * ($index),
+                        'y' => $vertical_offset,
+                        'height' => $this->rowHeight,
+                        'width' => $this->columnWidth,
                     ];
                 }
             }
@@ -167,7 +213,15 @@ class PuzzleBoardStaticImageGenerator
             }
         }
 
-        return ['thick_lines' => $thickLines, 'thin_lines' => $thinLines, 'prefills' => $prefills];
+        return ['thick_lines' => $thickLines, 'thin_lines' => $thinLines, 'shaded' => $shaded, 'prefills' => $prefills];
+    }
+
+    public function cellIsShaded($row, $column): bool
+    {
+        if (!$this->boardShaded) {
+            return false;
+        }
+        return $this->boardShaded[$row][$column];
     }
 
     public function cellHasPrefill($row, $column): null|int|string
