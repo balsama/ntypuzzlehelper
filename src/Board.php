@@ -15,10 +15,15 @@ class Board
     public array $cells;
     public array $groups;
 
-    public function __construct(array $boardDescription, array $boardPrefills)
-    {
+    public function __construct(
+        array $boardDescription,
+        array $boardPrefills,
+        array $boardShaded = [],
+        public array $meta = ['puzzle_type' => 'unk', 'date' => 'unk']
+    ) {
         $this->boardDescription = $boardDescription;
         $this->boardPrefills = $boardPrefills;
+        $this->boardShaded = $boardShaded;
         $this->cellify();
         $this->recordGroups();
         $this->prefill($boardPrefills);
@@ -35,6 +40,11 @@ class Board
     public function getBoardDescription(): array
     {
         return $this->boardDescription;
+    }
+
+    public function getBoardShaded(): ?array
+    {
+        return $this->boardShaded;
     }
 
     public function getBoardPrefills(): array
@@ -221,5 +231,4 @@ class Board
             $groupId++;
         }
     }
-
 }
