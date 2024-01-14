@@ -1,5 +1,6 @@
 puzzle_type: 'all-or-one'
 date: '2023-05-28'
+helper_boxes: 3
 board:
   - [   1,   1,   1,   2,   3,   3 ]
   - [   4,   4,   4,   2,   3,   5 ]

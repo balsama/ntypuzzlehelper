@@ -129,6 +129,19 @@ class PuzzleBoardStaticImageGenerator
             $char->setStyle('font-size', $this->fontSize . 'px');
             $doc->addChild($char);
         }
+        foreach ($this->svgValues['helper_boxes'] as $helper_box) {
+            $box = new SVGRect(
+                $helper_box['x'],
+                $helper_box['y'],
+                $helper_box['width'],
+                $helper_box['height'],
+            );
+            $box->setStyle('fill', 'transparent');
+            $box->setStyle('stroke', 'black');
+            $box->setStyle('stroke-width', 1);
+            $doc->addChild($box);
+        }
+
         $box = new SVGRect(0, 0, 800, 800);
         $box->setStyle('fill', 'transparent');
         $box->setStyle('stroke', 'black');
@@ -144,6 +157,7 @@ class PuzzleBoardStaticImageGenerator
         $thinLines = [];
         $shaded = [];
         $prefills = [];
+        $helperBoxes = [];
         foreach ($rows as $row => $cols) {
             $vertical_offset = $row * $this->rowHeight;
             $columnCount = count($cols);
@@ -180,6 +194,19 @@ class PuzzleBoardStaticImageGenerator
                         'width' => $this->columnWidth,
                     ];
                 }
+                if (array_key_exists('helper_boxes', $this->board->meta)) {
+                    if ($this->board->meta['helper_boxes']) {
+                        $helperBoxXYSize = ($this->columnWidth / $this->board->meta['helper_boxes']);
+                        for ($hbIndex = 0; $hbIndex < $this->board->meta['helper_boxes']; $hbIndex++) {
+                            $helperBoxes[] = [
+                                'x' => (($this->columnWidth * $index) + ($helperBoxXYSize * $hbIndex)),
+                                'y' => $vertical_offset,
+                                'height' => $helperBoxXYSize,
+                                'width' => $helperBoxXYSize,
+                            ];
+                        }
+                    }
+                }
             }
         }
 
@@ -213,7 +240,13 @@ class PuzzleBoardStaticImageGenerator
             }
         }
 
-        return ['thick_lines' => $thickLines, 'thin_lines' => $thinLines, 'shaded' => $shaded, 'prefills' => $prefills];
+        return [
+            'thick_lines' => $thickLines,
+            'thin_lines' => $thinLines,
+            'shaded' => $shaded,
+            'prefills' => $prefills,
+            'helper_boxes' => $helperBoxes,
+        ];
     }
 
     public function cellIsShaded($row, $column): bool

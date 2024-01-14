@@ -13,15 +13,13 @@ use Symfony\Component\Filesystem\Filesystem;
 
 if (getopt('f:')) {
     $boardDefinitionFile = getopt('f:')['f'];
-}
-else {
+} else {
     throw new InvalidArgumentException('Provide an input filename with the -f option.');
 }
 
 if (getopt('o:')) {
     $outputFilename = getopt('o:')['o'];
-}
-else {
+} else {
     $outputFilename = __DIR__ . '/../fixtures/board--' . $boardDefinitionFile . '.jpg';
 }
 
@@ -34,7 +32,14 @@ $puzzle = Yaml::parseFile($boardDefinitionFile);
 if (!array_key_exists('prefills', $puzzle)) {
     $puzzle['prefills'] = [];
 }
-$meta = ['puzzle_type' => $puzzle['puzzle_type'], 'date' => $puzzle['date']];
+if (!array_key_exists('prefills', $puzzle)) {
+    $puzzle['prefills'] = [];
+}
+if (!array_key_exists('shaded', $puzzle)) {
+    $puzzle['shaded'] = [];
+}
+$helperBoxes = array_key_exists('helper_boxes', $puzzle) ? $puzzle['helper_boxes'] : 0;
+$meta = ['puzzle_type' => $puzzle['puzzle_type'], 'date' => $puzzle['date'], 'helper_boxes' => $helperBoxes];
 $board = new Board($puzzle['board'], $puzzle['prefills'], $puzzle['shaded'], $meta);
 $puzzleBoardStaticImageGenerator = new PuzzleBoardStaticImageGenerator($board);
 
