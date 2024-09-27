@@ -4,6 +4,7 @@ namespace Balsama\Nytpuzzlehelper;
 
 use Laminas\Text\Table\Decorator\Blank;
 use MathieuViossat\Util\ArrayToTextTable;
+use Balsama\Nytpuzzlehelper\NoriNori\NoriNoriCell;
 
 /**
  * A basic board with groups/shape outlines.
@@ -77,8 +78,11 @@ class Board
         return $state;
     }
 
-    public function getMutableCell(int $row, string $column): Cell
+    public function getMutableCell(int $row, string $column): ?Cell
     {
+        if (!$this->cells[md5($row . $column)]) {
+            return null;
+        }
         if (!$this->cells[md5($row . $column)]->valueIsMutable) {
             throw new \Exception("Cell $row$column is not mutable.");
         }
@@ -95,7 +99,7 @@ class Board
         return $state;
     }
 
-    public function getCellGroup($groupId): ?Group
+    protected function getCellGroup($groupId): ?Group
     {
         $groupCells = [];
         foreach ($this->cells as $cell) {
@@ -106,6 +110,7 @@ class Board
         if (!$groupCells) {
             return null;
         }
+
         return new Group($groupCells, $groupId);
     }
 
@@ -160,8 +165,18 @@ class Board
         return $this->cells;
     }
 
+    private function recordGroups(): void
+    {
+        $groupId = 1;
+        while ($cellGroup = $this->getCellGroup($groupId)) {
+            $this->groups[$groupId] = $cellGroup;
+            $groupId++;
+        }
+    }
+
     /**
      * Fills the board with known values
+     *
      * @param $prefills
      *   An array of arrays representing rows of cells. Cells with a known value should contain the known value integer.
      */
@@ -182,7 +197,7 @@ class Board
     }
 
     /**
-     * Gets the distance between two alphabetical letters.
+     * Gets the distance between two (alphabetically named) columns.
      *
      * @example
      *   getXDistance('f', 'b')
@@ -222,6 +237,7 @@ class Board
         }
         return $wipedCount;
     }
+
 
     private function recordGroups(): void
     {
