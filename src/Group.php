@@ -4,6 +4,11 @@ namespace Balsama\Nytpuzzlehelper;
 
 class Group
 {
+    /**
+     * @param array $cells
+     *   An array of `Balsama\Nytpuzzlehelper\Cell`s
+     * @param int $id
+     */
     public function __construct(public array $cells, public int $id)
     {
     }
