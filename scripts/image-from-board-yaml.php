@@ -35,7 +35,7 @@ if (!array_key_exists('prefills', $puzzle)) {
     $puzzle['prefills'] = [];
 }
 $meta = ['puzzle_type' => $puzzle['puzzle_type'], 'date' => $puzzle['date']];
-$board = new Board($puzzle['board'], $puzzle['prefills'], $puzzle['shaded'], $meta);
+$board = new Board($puzzle['board'], $puzzle['prefills'], [], $meta);
 $puzzleBoardStaticImageGenerator = new PuzzleBoardStaticImageGenerator($board);
 
 // Save a single image.
